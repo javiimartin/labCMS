@@ -7,7 +7,6 @@ const path = require('path');
 const fs = require('fs');
 const http = require('http');
 
-const attendanceRouter = require('./routes/attendance.routes');
 const labsRouter = require('./routes/labs.routes');
 const userRouter = require('./routes/user.routes');
 const adminRouter = require('./routes/admin.routes');
