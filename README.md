@@ -16,6 +16,12 @@ La aplicación está desarrollada en **Node.js** utilizando **Express** como fra
 - **Roles de Usuario**: La plataforma ofrece diferentes niveles de acceso para **administradores** y **alumnos**. Los administradores tienen control total sobre la información de los laboratorios, mientras que los alumnos tienen acceso limitado.
 - **Actualización Fácil**: Facilita la actualización de datos y asegura que todos los laboratorios compartan información coherente.
 
+## Producto Mínimo Viable
+
+El producto mínimo viable de este proyecto incluye un sistema para diferenciar entre los distintos tipos de usuario. El tipo de usuario 
+administrador tendrá la posibilidad de gestionar los laboratorios y los proyectos que se realizan en cada uno mientras que los alumnos 
+tendrán una interfaz para poder ver la información de cada laboratorio junto con sus proyectos.
+
 ## Tecnologías Utilizadas
 
 - **Node.js**: Entorno de ejecución para el desarrollo del backend.
@@ -26,6 +32,11 @@ La aplicación está desarrollada en **Node.js** utilizando **Express** como fra
 
 - **Administradores**: Pueden crear, editar y eliminar información sobre los laboratorios, actualizar objetivos y gestionar proyectos.
 - **Alumnos**: Pueden acceder a información básica de los laboratorios, como objetivos y proyectos actuales, pero no tienen permisos de edición.
+
+## Historias de usuario
+
+- Un administrador quiere gestionar los laboratorios, creando y modificando los proyectos a realizar en el mismo. También quiere gestionar información del laboratorio como horarios, fotografías, etc.
+- Un estudiante quiere ver una lista con los laboratorios disponibles y al seleccionar uno, ver los diferentes proyectos que se realizan en el mismo.
 
 ## Licencia
 
