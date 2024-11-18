@@ -1,19 +1,29 @@
 const jwt = require('jsonwebtoken');
 
-// Middleware para verificar que el usuario es un estudiante
-const studentAuthMiddleware = (req, res, next) => {
-  if (!req.user) {
-    return res.status(403).json({ message: 'Access denied. Requires student privileges' });
+const authMiddleware = (role) => (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: 'No token provided' });
   }
-  next();
+
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      console.error("Token error:", err);
+      return res.status(403).json({ message: 'Invalid token' });
+    }
+    console.log("User role:", user.role); // Añade esta línea para ver el rol
+    req.user = user;
+
+    if (role === 'student' && user.role !== 'student') {
+      return res.status(403).json({ message: 'Access denied. Requires student privileges' });
+    }
+    if (role === 'admin' && user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Requires admin privileges' });
+    }
+
+    next();
+  });
 };
 
-// Middleware para verificar que el usuario es un administrador
-const adminAuthMiddleware = (req, res, next) => {
-  if (!req.admin) {
-    return res.status(403).json({ message: 'Access denied. Requires admin privileges' });
-  }
-  next();
-};
-
-module.exports = { unifiedAuthMiddleware, studentAuthMiddleware, adminAuthMiddleware };
+module.exports = { authMiddleware };

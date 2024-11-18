@@ -1,0 +1,46 @@
+services:
+  db:
+    build:
+      context: ./database
+      dockerfile: docker/dockerfile.dev
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - attendancerecords-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/dockerfile.dev
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+      POSTGRES_HOST: db
+      POSTGRES_PORT: $POSTGRES_PORT
+      JWT_SECRET: $JWT_SECRET
+      PORT: 5000   
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - attendancerecords-network
+    ports:
+      - "5000:5000"
+
+
+volumes:
+  db-data:
+
+networks:
+  attendancerecords-network:
+    driver: bridge
