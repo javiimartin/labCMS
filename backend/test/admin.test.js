@@ -1,9 +1,9 @@
-const { registerAdmin, loginAdmin, getAllAdmins, updateAdmin } = require('./path_to_controller');
-const pool = require('../../config/db');
+const { registerAdmin, loginAdmin, getAllAdmins, updateAdmin } = require('../controllers/admin.controller');
+const pool = require('../db');
 const bcrypt = require('bcrypt');
 const { validationResult } = require('express-validator');
 
-jest.mock('../../config/db');
+jest.mock('../db');
 jest.mock('bcrypt');
 jest.mock('express-validator');
 
