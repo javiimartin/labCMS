@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const pool = require('../../config/db');
+const pool = require('../db');
 const { validationResult } = require('express-validator');
 const generateToken = require('../util/generateToken');
 
