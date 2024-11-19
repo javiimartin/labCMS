@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS dep_user (
     user_email VARCHAR(100) UNIQUE,
     user_password VARCHAR(255) NOT NULL,
     user_gender VARCHAR(10) NOT NULL,
-    user_age DATE NOT NULL,
+    user_age INTEGER NOT NULL,
     user_degree VARCHAR(100) NOT NULL,
     user_zipcode VARCHAR(10) NOT NULL,
     user_isnear BOOLEAN
