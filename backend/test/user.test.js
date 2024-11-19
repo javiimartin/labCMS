@@ -1,4 +1,4 @@
-const { registerUser, loginUser, getUserProfile, updateUserProfile } = require('./path_to_controller');
+const { registerUser, loginUser, getUserProfile, updateUserProfile } = require('../controllers/user.controller');
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const { validationResult } = require('express-validator');
