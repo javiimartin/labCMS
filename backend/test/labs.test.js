@@ -64,27 +64,41 @@ const {
     });
   
     describe('deleteLab', () => {
-      it('debería eliminar un laboratorio y sus archivos relacionados', async () => {
-        const req = { params: { id: '1' } };
-        const res = { sendStatus: jest.fn() };
-        const next = jest.fn();
-  
-        pool.query
-          .mockResolvedValueOnce({
-            rows: [
-              { lab_images: 'image1.png - image2.png', lab_video: 'video.mp4', lab_podcast: 'podcast.mp3' }
-            ]
-          }) // Mock SELECT
-          .mockResolvedValueOnce({ rowCount: 1 }); // Mock DELETE
-        fs.existsSync.mockReturnValue(true);
-        fs.unlinkSync.mockImplementation(() => {});
-  
-        await deleteLab(req, res, next);
-  
-        expect(pool.query).toHaveBeenCalledTimes(3);
-        expect(fs.unlinkSync).toHaveBeenCalledTimes(3);
-        expect(res.sendStatus).toHaveBeenCalledWith(204);
+        it('debería eliminar un laboratorio y sus archivos relacionados', async () => {
+          const req = { params: { id: '1' } };
+          const res = { sendStatus: jest.fn() };
+          const next = jest.fn();
+    
+          pool.query
+            // Primera llamada: recupera las referencias del laboratorio
+            .mockResolvedValueOnce({
+              rows: [
+                {
+                  lab_images: 'image1.png - image2.png',
+                  lab_video: 'video.mp4',
+                  lab_podcast: 'podcast.mp3'
+                }
+              ]
+            })
+            // Segunda llamada: elimina los registros en la tabla `attendance`
+            .mockResolvedValueOnce({ rowCount: 1 })
+            // Tercera llamada: elimina los registros en la tabla `lab_followers`
+            .mockResolvedValueOnce({ rowCount: 1 })
+            // Cuarta llamada: elimina el laboratorio de la base de datos
+            .mockResolvedValueOnce({ rowCount: 1 });
+    
+          fs.existsSync.mockReturnValue(true);
+          fs.unlinkSync.mockImplementation(() => {});
+    
+          await deleteLab(req, res, next);
+    
+          // Verifica las llamadas a la base de datos
+          expect(pool.query).toHaveBeenCalledTimes(4);
+          // Verifica la eliminación de los archivos
+          expect(fs.unlinkSync).toHaveBeenCalledTimes(3);
+          // Verifica la respuesta enviada
+          expect(res.sendStatus).toHaveBeenCalledWith(204);
+        });
       });
-    });
   });
   
