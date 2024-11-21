@@ -1,4 +1,4 @@
-const { createLab, updateLab, deleteLab } = require('../controllers/labs.controller');
+const { createLab, updateLab, deleteLab } = require('../backend/controllers/labs.controller');
 const pool = require('../db');
 
 // Mock del pool de base de datos
@@ -22,12 +22,9 @@ describe('Labs Controller', () => {
         },
         files: null,
       };
-      const res = {
-        json: jest.fn(),
-      };
+      const res = { json: jest.fn() };
       const next = jest.fn();
 
-      // Mock para la inserción en la base de datos
       pool.query.mockResolvedValueOnce({
         rows: [{ lab_code: 1 }],
       });
@@ -67,18 +64,16 @@ describe('Labs Controller', () => {
         },
         files: null,
       };
-      const res = {
-        json: jest.fn(),
-      };
+      const res = { json: jest.fn() };
       const next = jest.fn();
 
       pool.query
         .mockResolvedValueOnce({
           rows: [{ lab_images: '', lab_video: '', lab_podcast: '' }],
-        }) // Recuperar multimedia existente
+        }) // Datos existentes
         .mockResolvedValueOnce({
           rows: [{ lab_code: 1 }],
-        }); // Actualización del laboratorio
+        }); // Resultado de la actualización
 
       await updateLab(req, res, next);
 
@@ -114,8 +109,8 @@ describe('Labs Controller', () => {
       pool.query
         .mockResolvedValueOnce({
           rows: [{ lab_images: '', lab_video: '', lab_podcast: '' }],
-        }) // Recuperar multimedia existente
-        .mockResolvedValueOnce({ rowCount: 1 }); // Eliminación del laboratorio
+        }) // Datos existentes
+        .mockResolvedValueOnce({ rowCount: 1 }); // Resultado de eliminación
 
       await deleteLab(req, res, next);
 
