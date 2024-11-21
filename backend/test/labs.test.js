@@ -1,5 +1,3 @@
-const request = require('supertest');
-const express = require('express');
 const { createLab, updateLab, deleteLab } = require('./labs.controller');
 const pool = require('../db');
 
@@ -8,125 +6,136 @@ jest.mock('../db', () => ({
   query: jest.fn(),
 }));
 
-// Configuración de la aplicación express simulada
-const app = express();
-app.use(express.json());
-app.post('/labs', createLab);
-app.put('/labs/:id', updateLab);
-app.delete('/labs/:id', deleteLab);
-
 describe('Labs Controller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('POST /labs - createLab', () => {
+  describe('createLab', () => {
     it('debería crear un laboratorio y devolver su código', async () => {
-      // Mock para insertar un laboratorio
-      pool.query.mockResolvedValueOnce({
-        rows: [{ lab_code: 1, lab_name: 'Test Lab' }],
-      });
-
-      const response = await request(app)
-        .post('/labs')
-        .send({
+      const req = {
+        body: {
           lab_name: 'Test Lab',
           lab_description: 'Description',
           lab_objectives: 'Objectives',
           lab_proyects: 'Projects',
-        });
+        },
+        files: null,
+      };
+      const res = {
+        json: jest.fn(),
+      };
+      const next = jest.fn();
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({ lab_code: 1 });
+      // Mock para la inserción en la base de datos
+      pool.query.mockResolvedValueOnce({
+        rows: [{ lab_code: 1 }],
+      });
+
+      await createLab(req, res, next);
+
       expect(pool.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO lab'),
-        expect.arrayContaining(['Test Lab', 'Description', 'Objectives', 'Projects'])
+        expect.arrayContaining(['Test Lab', 'Description', 'Objectives', 'Projects', '', '', ''])
       );
+      expect(res.json).toHaveBeenCalledWith({ lab_code: 1 });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it('debería manejar errores al crear un laboratorio', async () => {
+      const req = { body: {}, files: null };
+      const res = { json: jest.fn() };
+      const next = jest.fn();
+
       pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-      const response = await request(app)
-        .post('/labs')
-        .send({
-          lab_name: 'Test Lab',
-          lab_description: 'Description',
-          lab_objectives: 'Objectives',
-          lab_proyects: 'Projects',
-        });
+      await createLab(req, res, next);
 
-      expect(response.status).toBe(500);
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 
-  describe('PUT /labs/:id - updateLab', () => {
+  describe('updateLab', () => {
     it('debería actualizar un laboratorio existente', async () => {
-      // Mock para seleccionar y actualizar un laboratorio
+      const req = {
+        params: { id: 1 },
+        body: {
+          lab_name: 'Updated Lab',
+          lab_description: 'Updated Description',
+          lab_objectives: 'Updated Objectives',
+          lab_proyects: 'Updated Projects',
+        },
+        files: null,
+      };
+      const res = {
+        json: jest.fn(),
+      };
+      const next = jest.fn();
+
       pool.query
         .mockResolvedValueOnce({
           rows: [{ lab_images: '', lab_video: '', lab_podcast: '' }],
-        }) // Consulta para obtener datos existentes
+        }) // Recuperar multimedia existente
         .mockResolvedValueOnce({
           rows: [{ lab_code: 1 }],
         }); // Actualización del laboratorio
 
-      const response = await request(app)
-        .put('/labs/1')
-        .send({
-          lab_name: 'Updated Lab',
-          lab_description: 'Updated Description',
-          lab_objectives: 'Updated Objectives',
-          lab_proyects: 'Updated Projects',
-        });
+      await updateLab(req, res, next);
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({ lab_code: 1 });
       expect(pool.query).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE lab'),
-        expect.arrayContaining(['Updated Lab', 'Updated Description', 'Updated Objectives', 'Updated Projects', 1])
+        expect.arrayContaining(['Updated Lab', 'Updated Description', 'Updated Objectives', 'Updated Projects', '', '', '', 1])
       );
+      expect(res.json).toHaveBeenCalledWith({ lab_code: 1 });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it('debería devolver 404 si el laboratorio no existe', async () => {
+      const req = { params: { id: 999 }, body: {}, files: null };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+      const next = jest.fn();
+
       pool.query.mockResolvedValueOnce({ rows: [] });
 
-      const response = await request(app)
-        .put('/labs/999')
-        .send({
-          lab_name: 'Updated Lab',
-          lab_description: 'Updated Description',
-          lab_objectives: 'Updated Objectives',
-          lab_proyects: 'Updated Projects',
-        });
+      await updateLab(req, res, next);
 
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: 'Lab not found' });
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Lab not found' });
+      expect(next).not.toHaveBeenCalled();
     });
   });
 
-  describe('DELETE /labs/:id - deleteLab', () => {
+  describe('deleteLab', () => {
     it('debería eliminar un laboratorio existente', async () => {
-      // Mock para obtener datos existentes y eliminar
+      const req = { params: { id: 1 } };
+      const res = { sendStatus: jest.fn() };
+      const next = jest.fn();
+
       pool.query
         .mockResolvedValueOnce({
           rows: [{ lab_images: '', lab_video: '', lab_podcast: '' }],
-        }) // Consulta para obtener datos existentes
+        }) // Recuperar multimedia existente
         .mockResolvedValueOnce({ rowCount: 1 }); // Eliminación del laboratorio
 
-      const response = await request(app).delete('/labs/1');
+      await deleteLab(req, res, next);
 
-      expect(response.status).toBe(204);
       expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('DELETE FROM lab'), [1]);
+      expect(res.sendStatus).toHaveBeenCalledWith(204);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it('debería devolver 404 si el laboratorio no existe', async () => {
+      const req = { params: { id: 999 } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      const next = jest.fn();
+
       pool.query.mockResolvedValueOnce({ rows: [] });
 
-      const response = await request(app).delete('/labs/999');
+      await deleteLab(req, res, next);
 
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: 'Lab not found' });
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Lab not found' });
+      expect(next).not.toHaveBeenCalled();
     });
   });
 });
