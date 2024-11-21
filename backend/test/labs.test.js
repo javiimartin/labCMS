@@ -1,4 +1,4 @@
-const { createLab, updateLab, deleteLab } = require('./labs.controller');
+const { createLab, updateLab, deleteLab } = require('../controllers/labs.controller');
 const pool = require('../db');
 
 // Mock del pool de base de datos
