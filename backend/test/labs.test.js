@@ -68,9 +68,9 @@ const {
           const req = { params: { id: '1' } };
           const res = { sendStatus: jest.fn() };
           const next = jest.fn();
-    
+      
           pool.query
-            // Primera llamada: recupera las referencias del laboratorio
+            // Primera llamada: recupera los datos del laboratorio
             .mockResolvedValueOnce({
               rows: [
                 {
@@ -80,25 +80,28 @@ const {
                 }
               ]
             })
-            // Segunda llamada: elimina los registros en la tabla `attendance`
+            // Segunda llamada: elimina registros de la tabla `attendance`
             .mockResolvedValueOnce({ rowCount: 1 })
-            // Tercera llamada: elimina los registros en la tabla `lab_followers`
+            // Tercera llamada: elimina registros de la tabla `lab_followers`
             .mockResolvedValueOnce({ rowCount: 1 })
             // Cuarta llamada: elimina el laboratorio de la base de datos
             .mockResolvedValueOnce({ rowCount: 1 });
-    
+      
           fs.existsSync.mockReturnValue(true);
           fs.unlinkSync.mockImplementation(() => {});
-    
+      
           await deleteLab(req, res, next);
-    
+      
           // Verifica las llamadas a la base de datos
           expect(pool.query).toHaveBeenCalledTimes(4);
+      
           // Verifica la eliminación de los archivos
           expect(fs.unlinkSync).toHaveBeenCalledTimes(3);
-          // Verifica la respuesta enviada
+      
+          // Verifica que la respuesta HTTP sea correcta
           expect(res.sendStatus).toHaveBeenCalledWith(204);
         });
       });
+      
   });
   
