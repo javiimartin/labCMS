@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const pool = require('../db');
-const QRCode = require('qrcode');
 const multimediaProcess = require('../util/multimediaProcess');
 
 const BASE_URL = 'https://localhost:5000/static/lab_img/';
@@ -14,7 +13,7 @@ const ensureDirectoryExistence = (filePath) => {
     try {
       console.log(`Creating directory: ${dirname}`);
       fs.mkdirSync(dirname, { recursive: true });
-      fs.chmodSync(dirname, 0o755); 
+      fs.chmodSync(dirname, 0o755);
     } catch (error) {
       console.error(`Error creating directory ${dirname}:`, error);
     }
@@ -31,9 +30,11 @@ const createLab = async (req, res, next) => {
 
   try {
     if (req.files && req.files.lab_images) {
-      const imageNames = await Promise.all(req.files.lab_images.map(file =>
-        multimediaProcess(file, 'image', timestamp)
-      ));
+      const imageNames = await Promise.all(
+        req.files.lab_images.map((file) =>
+          multimediaProcess(file, 'image', timestamp)
+        )
+      );
       lab_images = imageNames;
     }
 
@@ -52,26 +53,7 @@ const createLab = async (req, res, next) => {
 
     const newLab = result.rows[0];
     console.log('New Lab created:', newLab);
-
-    // Verificar que el lab_code está definido correctamente
-    if (!newLab.lab_code) {
-      throw new Error('Lab code is undefined. Cannot generate QR code.');
-    }
-
-    const qrValue = `${newLab.lab_code} - ${newLab.lab_name}`;
-    const qrPath = path.join(__dirname, `../data/lab_qr/${newLab.lab_code}.png`);
-    console.log("QR Path:", qrPath);  // Depuración: Asegúrate de que el path sea correcto
-    ensureDirectoryExistence(qrPath);
-
-    await QRCode.toFile(qrPath, qrValue);
-
-    // Verificar que el archivo ha sido creado
-    if (!fs.existsSync(qrPath)) {
-        throw new Error('QR code file was not created.');
-    }
-    
     res.json({ lab_code: newLab.lab_code });
-    
   } catch (error) {
     console.error('Error in createLab:', error);
     next(error);

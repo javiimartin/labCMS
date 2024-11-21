@@ -7,7 +7,6 @@ const {
   } = require('../controllers/labs.controller');
   const pool = require('../db');
   const fs = require('fs');
-  const QRCode = require('qrcode');
   const multimediaProcess = require('../util/multimediaProcess');
   
   jest.mock('../db', () => ({
@@ -15,10 +14,6 @@ const {
   }));
   jest.mock('../util/multimediaProcess', () => jest.fn());
   jest.mock('fs');
-  jest.mock('qrcode', () => ({
-    toFile: jest.fn()
-  }));
-  
   
   describe('Labs Controller', () => {
     beforeEach(() => {
@@ -49,7 +44,6 @@ const {
           .mockResolvedValueOnce('processed_video.mp4')
           .mockResolvedValueOnce('processed_podcast.mp3');
         pool.query.mockResolvedValueOnce({ rows: [{ lab_code: 1, lab_name: 'New Lab' }] });
-        QRCode.toFile.mockResolvedValueOnce();
   
         await createLab(req, res, next);
   
@@ -64,10 +58,6 @@ const {
             'processed_video.mp4',
             'processed_podcast.mp3'
           ]
-        );
-        expect(QRCode.toFile).toHaveBeenCalledWith(
-          expect.any(String),
-          '1 - New Lab'
         );
         expect(res.json).toHaveBeenCalledWith({ lab_code: 1 });
       });
