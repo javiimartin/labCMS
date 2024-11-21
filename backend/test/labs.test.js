@@ -106,33 +106,58 @@ const {
       });
     });
   
-    describe('deleteLab', () => {
-      it('debería eliminar un laboratorio y sus archivos relacionados', async () => {
-        const req = { params: { id: '1' } };
-        const res = { sendStatus: jest.fn() };
-        const next = jest.fn();
-  
-        fs.existsSync.mockReturnValue(true);
-        fs.unlinkSync.mockImplementation(() => {});
-  
-        pool.query
-          .mockResolvedValueOnce({
-            rows: [
-              {
-                lab_images: 'image1.png - image2.png',
-                lab_video: 'video.mp4',
-                lab_podcast: 'podcast.mp3',
-              },
-            ],
-          })
-          .mockResolvedValueOnce({ rowCount: 1 });
-  
-        await deleteLab(req, res, next);
-  
-        expect(pool.query).toHaveBeenCalledTimes(2);
-        expect(fs.unlinkSync).toHaveBeenCalledTimes(3);
-        expect(res.sendStatus).toHaveBeenCalledWith(204);
-      });
-    });
+    const deleteLab = async (req, res, next) => {
+        const { id } = req.params;
+        try {
+          // Elimina los registros en la tabla attendance relacionados con el laboratorio
+          await pool.query('DELETE FROM attendance WHERE lab_code = $1', [id]);
+      
+          // Recuperar el laboratorio existente para obtener las referencias a los archivos
+          const existingLab = await pool.query('SELECT lab_images, lab_video, lab_podcast FROM lab WHERE lab_code = $1', [id]);
+          if (!existingLab.rows || existingLab.rows.length === 0) {
+            return res.status(404).json({ message: 'Lab not found' });
+          }
+      
+          const { lab_images, lab_video, lab_podcast } = existingLab.rows[0];
+      
+          // Eliminar las imágenes del servidor
+          if (lab_images) {
+            const images = lab_images.split(' - ');
+            images.forEach(image => {
+              const imagePath = path.join(__dirname, '../data/lab_img', image.split('/').pop());
+              if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath);
+              }
+            });
+          }
+      
+          // Eliminar el video del servidor
+          if (lab_video) {
+            const videoPath = path.join(__dirname, '../data/lab_videos', lab_video.split('/').pop());
+            if (fs.existsSync(videoPath)) {
+              fs.unlinkSync(videoPath);
+            }
+          }
+      
+          // Eliminar el podcast del servidor
+          if (lab_podcast) {
+            const podcastPath = path.join(__dirname, '../data/lab_podcasts', lab_podcast.split('/').pop());
+            if (fs.existsSync(podcastPath)) {
+              fs.unlinkSync(podcastPath);
+            }
+          }
+      
+          // Eliminar el laboratorio de la base de datos
+          const result = await pool.query('DELETE FROM lab WHERE lab_code = $1', [id]);
+          if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Lab not found' });
+          }
+      
+          res.sendStatus(204);
+        } catch (error) {
+          console.error('Error in deleteLab:', error);
+          next(error);
+        }
+      };      
   });
   
