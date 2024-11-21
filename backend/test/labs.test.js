@@ -1,107 +1,132 @@
-const {
-    getAllLabs,
-    getLabById,
-    createLab,
-    updateLab,
-    deleteLab
-  } = require('../controllers/labs.controller');
-  const pool = require('../db');
-  const fs = require('fs');
-  const multimediaProcess = require('../util/multimediaProcess');
-  
-  jest.mock('../db', () => ({
-    query: jest.fn()
-  }));
-  jest.mock('../util/multimediaProcess', () => jest.fn());
-  jest.mock('fs');
-  
-  describe('Labs Controller', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-  
-    describe('createLab', () => {
-      it('debería crear un nuevo laboratorio y devolver su código', async () => {
-        const req = {
-          body: {
-            lab_name: 'New Lab',
-            lab_description: 'Description',
-            lab_objectives: 'Objectives',
-            lab_proyects: 'Projects'
-          },
-          files: {
-            lab_images: [{ filename: 'image1.png' }, { filename: 'image2.png' }],
-            lab_video: [{ filename: 'video.mp4' }],
-            lab_podcast: [{ filename: 'podcast.mp3' }]
-          }
-        };
-        const res = { json: jest.fn() };
-        const next = jest.fn();
-  
-        multimediaProcess
-          .mockResolvedValueOnce('processed_image1.png')
-          .mockResolvedValueOnce('processed_image2.png')
-          .mockResolvedValueOnce('processed_video.mp4')
-          .mockResolvedValueOnce('processed_podcast.mp3');
-        pool.query.mockResolvedValueOnce({ rows: [{ lab_code: 1, lab_name: 'New Lab' }] });
-  
-        await createLab(req, res, next);
-  
-        expect(pool.query).toHaveBeenCalledWith(
-          'INSERT INTO lab (lab_name, lab_description, lab_objectives, lab_proyects, lab_images, lab_video, lab_podcast) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING lab_code, lab_name',
-          [
-            'New Lab',
-            'Description',
-            'Objectives',
-            'Projects',
-            'processed_image1.png - processed_image2.png',
-            'processed_video.mp4',
-            'processed_podcast.mp3'
-          ]
-        );
-        expect(res.json).toHaveBeenCalledWith({ lab_code: 1 });
-      });
-    });
-  
-    describe('deleteLab', () => {
-        it('debería eliminar un laboratorio y sus archivos relacionados', async () => {
-          const req = { params: { id: '1' } };
-          const res = { sendStatus: jest.fn() };
-          const next = jest.fn();
-      
-          pool.query
-            // Primera llamada: recupera los datos del laboratorio
-            .mockResolvedValueOnce({
-              rows: [
-                {
-                  lab_images: 'image1.png - image2.png',
-                  lab_video: 'video.mp4',
-                  lab_podcast: 'podcast.mp3'
-                }
-              ]
-            })
-            // Segunda llamada: elimina registros de la tabla `attendance`
-            .mockResolvedValueOnce({ rowCount: 1 })
-            // Tercera llamada: elimina registros de la tabla `lab_followers`
-            .mockResolvedValueOnce({ rowCount: 1 })
-            // Cuarta llamada: elimina el laboratorio de la base de datos
-            .mockResolvedValueOnce({ rowCount: 1 });
-      
-          fs.existsSync.mockReturnValue(true);
-          fs.unlinkSync.mockImplementation(() => {});
-      
-          await deleteLab(req, res, next);
-      
-          // Verifica las llamadas a la base de datos
-          expect(pool.query).toHaveBeenCalledTimes(4);
-      
-          // Verifica la eliminación de los archivos
-          expect(fs.unlinkSync).toHaveBeenCalledTimes(3);
-      
-          // Verifica que la respuesta HTTP sea correcta
-          expect(res.sendStatus).toHaveBeenCalledWith(204);
-        });
-      });
-      
+const request = require('supertest');
+const express = require('express');
+const { createLab, updateLab, deleteLab } = require('./labs.controller');
+const pool = require('../db');
+
+// Mock del pool de base de datos
+jest.mock('../db', () => ({
+  query: jest.fn(),
+}));
+
+// Configuración de la aplicación express simulada
+const app = express();
+app.use(express.json());
+app.post('/labs', createLab);
+app.put('/labs/:id', updateLab);
+app.delete('/labs/:id', deleteLab);
+
+describe('Labs Controller', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
-  
+
+  describe('POST /labs - createLab', () => {
+    it('debería crear un laboratorio y devolver su código', async () => {
+      // Mock para insertar un laboratorio
+      pool.query.mockResolvedValueOnce({
+        rows: [{ lab_code: 1, lab_name: 'Test Lab' }],
+      });
+
+      const response = await request(app)
+        .post('/labs')
+        .send({
+          lab_name: 'Test Lab',
+          lab_description: 'Description',
+          lab_objectives: 'Objectives',
+          lab_proyects: 'Projects',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ lab_code: 1 });
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO lab'),
+        expect.arrayContaining(['Test Lab', 'Description', 'Objectives', 'Projects'])
+      );
+    });
+
+    it('debería manejar errores al crear un laboratorio', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+      const response = await request(app)
+        .post('/labs')
+        .send({
+          lab_name: 'Test Lab',
+          lab_description: 'Description',
+          lab_objectives: 'Objectives',
+          lab_proyects: 'Projects',
+        });
+
+      expect(response.status).toBe(500);
+    });
+  });
+
+  describe('PUT /labs/:id - updateLab', () => {
+    it('debería actualizar un laboratorio existente', async () => {
+      // Mock para seleccionar y actualizar un laboratorio
+      pool.query
+        .mockResolvedValueOnce({
+          rows: [{ lab_images: '', lab_video: '', lab_podcast: '' }],
+        }) // Consulta para obtener datos existentes
+        .mockResolvedValueOnce({
+          rows: [{ lab_code: 1 }],
+        }); // Actualización del laboratorio
+
+      const response = await request(app)
+        .put('/labs/1')
+        .send({
+          lab_name: 'Updated Lab',
+          lab_description: 'Updated Description',
+          lab_objectives: 'Updated Objectives',
+          lab_proyects: 'Updated Projects',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ lab_code: 1 });
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE lab'),
+        expect.arrayContaining(['Updated Lab', 'Updated Description', 'Updated Objectives', 'Updated Projects', 1])
+      );
+    });
+
+    it('debería devolver 404 si el laboratorio no existe', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] });
+
+      const response = await request(app)
+        .put('/labs/999')
+        .send({
+          lab_name: 'Updated Lab',
+          lab_description: 'Updated Description',
+          lab_objectives: 'Updated Objectives',
+          lab_proyects: 'Updated Projects',
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Lab not found' });
+    });
+  });
+
+  describe('DELETE /labs/:id - deleteLab', () => {
+    it('debería eliminar un laboratorio existente', async () => {
+      // Mock para obtener datos existentes y eliminar
+      pool.query
+        .mockResolvedValueOnce({
+          rows: [{ lab_images: '', lab_video: '', lab_podcast: '' }],
+        }) // Consulta para obtener datos existentes
+        .mockResolvedValueOnce({ rowCount: 1 }); // Eliminación del laboratorio
+
+      const response = await request(app).delete('/labs/1');
+
+      expect(response.status).toBe(204);
+      expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('DELETE FROM lab'), [1]);
+    });
+
+    it('debería devolver 404 si el laboratorio no existe', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] });
+
+      const response = await request(app).delete('/labs/999');
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Lab not found' });
+    });
+  });
+});

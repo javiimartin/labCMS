@@ -22,14 +22,6 @@ CREATE TABLE IF NOT EXISTS dep_user (
     user_isnear BOOLEAN
 );
 
-CREATE TABLE IF NOT EXISTS lab_followers (
-    lab_code INT,
-    user_code INT,
-    PRIMARY KEY (lab_code, user_code),
-    FOREIGN KEY (lab_code) REFERENCES lab(lab_code),
-    FOREIGN KEY (user_code) REFERENCES dep_user(user_code)
-);
-
 CREATE TABLE IF NOT EXISTS dep_admin (
     user_code SERIAL PRIMARY KEY,
     user_name VARCHAR(100) NOT NULL,

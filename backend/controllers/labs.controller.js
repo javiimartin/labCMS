@@ -200,11 +200,8 @@ const getLabById = async (req, res, next) => {
 const deleteLab = async (req, res, next) => {
   const { id } = req.params;
   try {
-    // Primero, elimina los registros en la tabla attendance relacionados con el laboratorio
+    // Elimina los registros en la tabla attendance relacionados con el laboratorio
     await pool.query('DELETE FROM attendance WHERE lab_code = $1', [id]);
-
-    // Elimina los seguidores relacionados con el laboratorio
-    await pool.query('DELETE FROM lab_followers WHERE lab_code = $1', [id]);
 
     // Recuperar el laboratorio existente para obtener las referencias a los archivos
     const existingLab = await pool.query('SELECT lab_images, lab_video, lab_podcast FROM lab WHERE lab_code = $1', [id]);
@@ -291,75 +288,6 @@ const deleteLabMedia = async (req, res, next) => {
   }
 };
 
-const followLab = async (req, res, next) => {
-  const { id } = req.params;
-  const { user_code } = req.body;
-
-  try {
-    await pool.query('INSERT INTO lab_followers (lab_code, user_code) VALUES ($1, $2) ON CONFLICT DO NOTHING', [id, user_code]);
-    res.sendStatus(204);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const unfollowLab = async (req, res, next) => {
-  const { id } = req.params; // lab_code
-  const { user_code } = req.body;
-
-  try {
-    await pool.query('DELETE FROM lab_followers WHERE lab_code = $1 AND user_code = $2', [id, user_code]);
-    res.sendStatus(204);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const checkIfFollowing = async (req, res, next) => {
-  const { id, userId } = req.params;
-
-  // Asegurarse de que id y userId son enteros válidos
-  const labId = parseInt(id, 10);
-  const userCode = parseInt(userId, 10);
-
-  if (isNaN(labId) || isNaN(userCode)) {
-    return res.status(400).json({ error: 'Invalid lab ID or user ID' });
-  }
-
-  try {
-    const result = await pool.query(
-      'SELECT 1 FROM lab_followers WHERE lab_code = $1 AND user_code = $2',
-      [labId, userCode]
-    );
-    res.json({ isFollowing: result.rows.length > 0 });
-  } catch (error) {
-    next(error);
-  }
-
-};
-
-const getLabFollowersCount = async (req, res) => {
-  const labId = parseInt(req.params.id, 10);
-  
-  // Verificar si labId es un número válido
-  if (isNaN(labId)) {
-    return res.status(400).json({ error: 'Invalid Lab ID' });
-  }
-
-  try {
-    const result = await pool.query('SELECT COUNT(*) FROM lab_followers WHERE lab_code = $1', [labId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Lab not found' });
-    }
-
-    const followersCount = result.rows[0].count;
-    return res.json({ count: parseInt(followersCount, 10) });
-  } catch (error) {
-    return res.status(500).json({ error: 'Error fetching followers count' });
-  }
-};
-
 module.exports = {
   getAllLabs,
   getLabById,
@@ -368,8 +296,4 @@ module.exports = {
   deleteLab,
   deleteLabImage,
   deleteLabMedia,
-  followLab,
-  unfollowLab,
-  checkIfFollowing,
-  getLabFollowersCount
 };
