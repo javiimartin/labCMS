@@ -1,3 +1,18 @@
+const { registerUser, loginUser, getUserProfile, updateUserProfile } = require('../controllers/user.controller');
+const pool = require('../db');
+const bcrypt = require('bcrypt');
+const { validationResult } = require('express-validator');
+const generateToken = require('../util/generateToken');
+
+jest.mock('../db', () => ({
+  query: jest.fn()
+}));
+jest.mock('bcrypt');
+jest.mock('express-validator', () => ({
+  validationResult: jest.fn()
+}));
+jest.mock('../util/generateToken', () => jest.fn());
+
 describe('User Controller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -12,7 +27,7 @@ describe('User Controller', () => {
           user_email: 'jane.doe@example.com',
           user_password: 'password123',
           user_gender: 'F',
-          user_age: 25, // Asegurarse de que user_age es válido
+          user_age: 25,
           user_degree: 'Computer Science',
           user_zipcode: '12345'
         }
