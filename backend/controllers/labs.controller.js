@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const pool = require('../db');
+const QRCode = require('qrcode');
 const multimediaProcess = require('../util/multimediaProcess');
 
 const BASE_URL = 'https://localhost:5000/static/lab_img/';
