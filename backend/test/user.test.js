@@ -1,74 +1,173 @@
-// const { registerUser, loginUser, getUserProfile, updateUserProfile } = require('../controllers/user.controller');
-// const pool = require('../db');
-// const bcrypt = require('bcrypt');
-// const { validationResult } = require('express-validator');
-// const generateToken = require('../util/generateToken');
+const request = require('supertest');
+const express = require('express');
+const userRouter = require('../src/routes/user.routes');
+const bcrypt = require('bcrypt');
+const pool = require('../config/db');
+const jwt = require('jsonwebtoken');
 
-// jest.mock('../db', () => ({
-//   query: jest.fn()
-// }));
-// jest.mock('bcrypt');
-// jest.mock('express-validator', () => ({
-//   validationResult: jest.fn()
-// }));
-// jest.mock('../util/generateToken', () => jest.fn());
+jest.mock('bcrypt');
+jest.mock('../config/db');
+jest.mock('../src/util/generateToken', () => jest.fn().mockReturnValue('mockToken'));
 
-// describe('User Controller', () => {
-//   beforeEach(() => {
-//     jest.clearAllMocks();
-//   });
+const app = express();
+app.use(express.json());
+app.use('/api/users', userRouter);
 
-//   describe('registerUser', () => {
-//     it('debería devolver error si el usuario ya existe', async () => {
-//       const req = {
-//         body: {
-//           user_name: 'Jane',
-//           user_surname: 'Doe',
-//           user_email: 'jane.doe@example.com',
-//           user_password: 'password123',
-//           user_gender: 'F',
-//           user_age: 25,
-//           user_degree: 'Computer Science',
-//           user_zipcode: '12345'
-//         }
-//       };
-//       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+describe('User Routes', () => {
+  const newUser = {
+    user_name: 'Test',
+    user_surname: 'User',
+    user_email: 'testuser@example.com',
+    user_password: 'password123',
+    user_gender: 'Male',
+    user_age: 25,
+    user_degree: 'Engineering',
+    user_zipcode: '12345'
+  };
 
-//       validationResult.mockReturnValue({ isEmpty: jest.fn().mockReturnValue(true) });
-//       pool.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] });
+  describe('POST /register', () => {
+    it('should register a new user with valid data', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] }); // User does not exist
+      bcrypt.hash.mockResolvedValueOnce('hashedPassword');
+      pool.query.mockResolvedValueOnce({ rows: [{ user_id: 1, ...newUser, user_password: 'hashedPassword' }] });
 
-//       await registerUser(req, res);
+      const response = await request(app).post('/api/users/register').send(newUser);
 
-//       expect(res.status).toHaveBeenCalledWith(400);
-//       expect(res.json).toHaveBeenCalledWith({ msg: 'El usuario ya existe' });
-//     });
-//   });
+      expect(response.status).toBe(201);
+      expect(response.body.token).toBe('mockToken');
+    });
 
-//   describe('getUserProfile', () => {
-//     it('debería devolver el perfil de usuario sin la contraseña', async () => {
-//       const req = { user: { user_id: 1 } };
-//       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    it('should return 400 if user already exists', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ user_email: 'testuser@example.com' }] });
 
-//       pool.query.mockResolvedValueOnce({
-//         rows: [{ user_id: 1, user_name: 'Jane', user_password: 'hashedPassword' }]
-//       });
+      const response = await request(app).post('/api/users/register').send(newUser);
 
-//       await getUserProfile(req, res);
+      expect(response.status).toBe(400);
+      expect(response.body.msg).toBe('El usuario ya existe');
+    });
 
-//       expect(res.status).toHaveBeenCalledWith(200);
-//       expect(res.json).toHaveBeenCalledWith({ user_id: 1, user_name: 'Jane' });
-//     });
+    it('should return 400 if user_age is not a number', async () => {
+        const invalidUser = { ...newUser, user_age: 'not-a-number' };
+        
+        const response = await request(app).post('/api/users/register').send(invalidUser);
+        
+        expect(response.status).toBe(400);
+        expect(response.body.msg).toBe('Invalid user_age, it must be a number');
+    });
 
-//     it('debería devolver un error si el usuario no es encontrado', async () => {
-//       const req = { user: { user_id: 999 } };
-//       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    it('should return 500 on server error', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-//       pool.query.mockResolvedValueOnce({ rows: [] });
+      const response = await request(app).post('/api/users/register').send(newUser);
 
-//       await getUserProfile(req, res);
+      expect(response.status).toBe(500);
+      expect(response.body.msg).toBe('Error en el servidor');
+    });
+  });
 
-//       expect(res.status).toHaveBeenCalledWith(404);
-//       expect(res.json).toHaveBeenCalledWith({ msg: 'Usuario no encontrado' });
-//     });
-//   });
-// });
+  describe('POST /login', () => {
+    it('should login user with correct credentials', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ user_email: 'testuser@example.com', user_password: 'hashedPassword' }] });
+      bcrypt.compare.mockResolvedValueOnce(true);
+
+      const response = await request(app).post('/api/users/login').send({
+        user_email: 'testuser@example.com',
+        user_password: 'password123'
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.token).toBe('mockToken');
+    });
+
+    it('should return 400 if credentials are invalid', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ user_email: 'testuser@example.com', user_password: 'hashedPassword' }] });
+      bcrypt.compare.mockResolvedValueOnce(false);
+
+      const response = await request(app).post('/api/users/login').send({
+        user_email: 'testuser@example.com',
+        user_password: 'wrongpassword'
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.msg).toBe('Credenciales inválidas');
+    });
+
+    it('should return 500 on server error', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+      const response = await request(app).post('/api/users/login').send({
+        user_email: 'testuser@example.com',
+        user_password: 'password123'
+      });
+
+      expect(response.status).toBe(500);
+      expect(response.body.msg).toBe('Error en el servidor');
+    });
+  });
+
+  describe('Protected Routes', () => {
+    beforeEach(() => {
+      jwt.verify = jest.fn((token, secret, callback) => {
+        callback(null, { user_id: 1, role: 'student' });
+      });
+    });
+
+    describe('GET /profile', () => {
+      it('should return user profile if authenticated', async () => {
+        pool.query.mockResolvedValueOnce({
+          rows: [{ user_id: 1, user_name: 'Test', user_email: 'testuser@example.com', user_password: 'hashedPassword' }]
+        });
+
+        const response = await request(app)
+          .get('/api/users/profile')
+          .set('Authorization', 'Bearer mockToken');
+
+        expect(response.status).toBe(200);
+        expect(response.body).toMatchObject({ user_id: 1, user_name: 'Test', user_email: 'testuser@example.com' });
+      });
+
+      it('should return 404 if user not found', async () => {
+        pool.query.mockResolvedValueOnce({ rows: [] });
+
+        const response = await request(app)
+          .get('/api/users/profile')
+          .set('Authorization', 'Bearer mockToken');
+
+        expect(response.status).toBe(404);
+        expect(response.body.msg).toBe('Usuario no encontrado');
+      });
+    });
+
+    describe('PUT /profile', () => {
+        it('should update user profile with valid data', async () => {
+          const updatedData = {
+            user_name: 'Updated',
+            user_surname: 'User',
+            user_email: 'updateduser@example.com',
+            user_age: 26,
+            user_zipcode: '54321',
+            user_gender: 'Male',
+            user_degree: 'Engineering',
+          };
+      
+          // Mock the SELECT query to get the existing user
+          pool.query.mockResolvedValueOnce({
+            rows: [{ user_id: 1, user_name: 'Test', user_email: 'testuser@example.com', user_password: 'hashedPassword' }]
+          });
+      
+          // Mock the UPDATE query
+          pool.query.mockResolvedValueOnce({
+            rows: [{ user_id: 1, ...updatedData, user_password: 'hashedPassword' }]
+          });
+      
+          const response = await request(app)
+            .put('/api/users/profile')
+            .set('Authorization', 'Bearer mockToken')
+            .send(updatedData);
+      
+          expect(response.status).toBe(200);
+          expect(response.body).toMatchObject(updatedData);
+        });
+      });
+  });
+});
