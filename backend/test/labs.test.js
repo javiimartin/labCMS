@@ -6,7 +6,6 @@ const {
 const pool = require('../db');
 const fs = require('fs');
 const multimediaProcess = require('../util/multimediaProcess');
-const path = require('path');
 
 jest.mock('../db', () => ({
   query: jest.fn(),
@@ -29,9 +28,9 @@ describe('Labs Controller', () => {
           lab_proyects: 'Test Projects',
         },
         files: {
-          lab_images: [{ filename: 'image1.png' }, { filename: 'image2.png' }],
-          lab_video: [{ filename: 'video.mp4' }],
-          lab_podcast: [{ filename: 'podcast.mp3' }],
+          lab_images: [{ originalname: 'image1.png' }, { originalname: 'image2.png' }],
+          lab_video: [{ originalname: 'video.mp4' }],
+          lab_podcast: [{ originalname: 'podcast.mp3' }],
         },
       };
       const res = { json: jest.fn() };
@@ -89,8 +88,8 @@ describe('Labs Controller', () => {
           imagesToDelete: ['image1.png'],
         },
         files: {
-          lab_images: [{ filename: 'new_image.png' }],
-          lab_video: [{ filename: 'new_video.mp4' }],
+          lab_images: [{ originalname: 'new_image.png' }],
+          lab_video: [{ originalname: 'new_video.mp4' }],
         },
       };
       const res = { json: jest.fn() };
