@@ -3,7 +3,7 @@ const {
   loginAdmin,
   getAllAdmins,
   updateAdmin,
-} = require('../controller/admin.controller');
+} = require('../controllers/admin.controller');
 const {
   registerAdminService,
   loginAdminService,
