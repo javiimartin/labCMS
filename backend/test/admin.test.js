@@ -1,280 +1,229 @@
-// test/admin.test.js
 
-// Mocks necesarios antes de cualquier require
-jest.mock('../db', () => ({
-  query: jest.fn(),
-}));
-jest.mock('bcrypt');
-jest.mock('jsonwebtoken');
-jest.mock('express-validator', () => ({
-  validationResult: jest.fn(),
-}));
-
-jest.mock('../services/admin.service', () => ({
-  registerAdminService: jest.fn(),
-  loginAdminService: jest.fn(),
-  getAllAdminsService: jest.fn(),
-  updateAdminService: jest.fn(),
-}));
-
-// Importación de módulos
-const {
-  registerAdmin,
-  loginAdmin,
-  getAllAdmins,
-  updateAdmin,
-} = require('../controllers/admin.controller');
-const {
-  registerAdminService,
-  loginAdminService,
-  getAllAdminsService,
-  updateAdminService,
-} = require('../services/admin.service');
-const pool = require('../db');
+const request = require('supertest');
+const express = require('express');
+const adminRouter = require('../src/routes/admin.routes');
 const bcrypt = require('bcrypt');
+const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
+const generateToken = require('../src/util/generateToken');
 
-describe('Admin Controller', () => {
-  let req;
-  let res;
+jest.mock('bcrypt');
+jest.mock('../config/db');
+jest.mock('../src/util/generateToken', () => jest.fn().mockReturnValue('mockToken'));
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+const app = express();
+app.use(express.json());
+app.use('/api/admin', adminRouter);
 
-    req = {
-      body: {},
-      params: {},
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
-  });
+describe('Admin Routes', () => {
+  const newAdmin = {
+    admin_name: 'Admin',
+    admin_surname: 'User',
+    admin_email: 'adminuser@example.com',
+    admin_password: 'password123'
+  };
+
+  const updatedAdmin = {
+    admin_name: 'Updated',
+    admin_surname: 'Admin',
+    admin_email: 'updatedadmin@example.com'
+  };
+
+  // Mockear console.error y console.log para evitar mensajes durante las pruebas
+  const originalConsoleError = console.error;
+  const originalConsoleLog = console.log;
 
   beforeAll(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    console.error = jest.fn();
+    console.log = jest.fn();
   });
 
   afterAll(() => {
-    console.error.mockRestore();
+    console.error = originalConsoleError;
+    console.log = originalConsoleLog;
   });
 
-  describe('registerAdmin', () => {
-    it('debería registrar un nuevo administrador y devolver un token', async () => {
-      req.body = {
-        admin_name: 'John',
-        admin_surname: 'Doe',
-        admin_email: 'john.doe@example.com',
-        admin_password: 'password123',
-      };
-
-      validationResult.mockReturnValue({ isEmpty: () => true });
-
-      registerAdminService.mockResolvedValue('token');
-
-      await registerAdmin(req, res);
-
-      expect(registerAdminService).toHaveBeenCalledWith(req.body);
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({ token: 'token' });
+  beforeEach(() => {
+    jwt.verify = jest.fn((token, secret, callback) => {
+      callback(null, { admin_id: 1, role: 'admin' }); // Mock de verificación de token como administrador
     });
 
-    it('debería devolver un error si el administrador ya existe', async () => {
-      req.body = {
-        admin_email: 'john.doe@example.com',
-      };
-
-      validationResult.mockReturnValue({ isEmpty: () => true });
-
-      registerAdminService.mockRejectedValue(new Error('El administrador ya existe'));
-
-      await registerAdmin(req, res);
-
-      expect(registerAdminService).toHaveBeenCalledWith(req.body);
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'El administrador ya existe' });
-    });
-
-    it('debería manejar errores del servidor', async () => {
-      req.body = {
-        admin_email: 'john.doe@example.com',
-      };
-
-      validationResult.mockReturnValue({ isEmpty: () => true });
-
-      registerAdminService.mockRejectedValue(new Error('Database error'));
-
-      await registerAdmin(req, res);
-
-      expect(registerAdminService).toHaveBeenCalledWith(req.body);
-      expect(console.error).toHaveBeenCalledWith('Error en registerAdmin:', 'Database error');
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'Error en el servidor' });
-    });
+    pool.query.mockReset();
+    pool.query.mockResolvedValue({ rows: [] }); // Evitar errores al destructurar 'rows'
   });
 
-  describe('loginAdmin', () => {
-    it('debería iniciar sesión y devolver un token', async () => {
-      req.body = {
-        admin_email: 'john.doe@example.com',
-        admin_password: 'password123',
-      };
+  describe('POST /register', () => {
+    it('should register a new admin with valid data', async () => {
+      pool.query
+        .mockResolvedValueOnce({ rows: [] }) // Verificar si el admin existe
+        .mockResolvedValueOnce({ rows: [{ admin_id: 1, ...newAdmin, admin_password: 'hashedPassword' }] }); // Insertar nuevo admin
 
-      pool.query.mockResolvedValueOnce({
-        rows: [{ admin_id: 1, admin_password: 'hashedPassword', admin_email: 'john.doe@example.com' }],
-      });
-      bcrypt.compare.mockResolvedValue(true);
-      jwt.sign.mockReturnValue('token');
+      bcrypt.hash.mockResolvedValueOnce('hashedPassword');
 
-      await loginAdmin(req, res, next);
+      const response = await request(app)
+        .post('/api/admin/register')
+        .send(newAdmin);
 
-      expect(pool.query).toHaveBeenCalledTimes(1);
-      expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashedPassword');
-      expect(jwt.sign).toHaveBeenCalledWith(
-        { admin_id: 1, admin_password: 'hashedPassword', admin_email: 'john.doe@example.com', isAdmin: true },
-        expect.any(String),
-        { expiresIn: '1h' }
-      );
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ token: 'token' });
+      expect(response.status).toBe(201);
+      expect(response.body.token).toBe('mockToken');
+      expect(generateToken).toHaveBeenCalledWith(expect.objectContaining({ admin_id: 1, admin_email: 'adminuser@example.com' }));
     });
 
-    it('debería devolver un error si las credenciales son inválidas', async () => {
-      req.body = {
-        admin_email: 'john.doe@example.com',
-        admin_password: 'password123',
-      };
+    it('should return 400 if admin already exists', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ admin_email: 'adminuser@example.com' }] }); // Admin ya existe
 
-      pool.query.mockResolvedValueOnce({ rows: [] }); // No se encontró el administrador
+      const response = await request(app)
+        .post('/api/admin/register')
+        .send(newAdmin);
 
-      await loginAdmin(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'Credenciales inválidas' });
+      expect(response.status).toBe(400);
+      expect(response.body.msg).toBe('El administrador ya existe');
     });
 
-    it('debería manejar errores del servidor', async () => {
-      req.body = {
-        admin_email: 'john.doe@example.com',
-        admin_password: 'password123',
-      };
+    it('should return 400 for invalid input', async () => {
+      const invalidAdmin = { ...newAdmin, admin_email: 'invalid-email' };
 
-      pool.query.mockRejectedValue(new Error('Database error'));
+      const response = await request(app)
+        .post('/api/admin/register')
+        .send(invalidAdmin);
 
-      await loginAdmin(req, res, next);
+      expect(response.status).toBe(400);
+      expect(response.body.msg).toBe('Invalid input');
+    });
 
-      expect(console.error).toHaveBeenCalledWith('Database error');
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'Error en el servidor' });
+    it('should return 500 on database error', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+      const response = await request(app)
+        .post('/api/admin/register')
+        .send(newAdmin);
+
+      expect(response.status).toBe(500);
+      expect(response.body.msg).toBe('Error en el servidor');
     });
   });
 
-  describe('getAllAdmins', () => {
-    it('debería devolver una lista de administradores', async () => {
-      pool.query.mockResolvedValueOnce({
-        rows: [
-          { admin_id: 1, admin_name: 'John', admin_surname: 'Doe', admin_email: 'john.doe@example.com' },
-          { admin_id: 2, admin_name: 'Jane', admin_surname: 'Smith', admin_email: 'jane.smith@example.com' },
-        ],
+  describe('POST /login', () => {
+    it('should login admin with correct credentials', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ admin_email: 'adminuser@example.com', admin_password: 'hashedPassword' }] });
+      bcrypt.compare.mockResolvedValueOnce(true);
+
+      const response = await request(app).post('/api/admin/login').send({
+        admin_email: 'adminuser@example.com',
+        admin_password: 'password123'
       });
 
-      await getAllAdmins(req, res, next);
-
-      expect(pool.query).toHaveBeenCalledTimes(1);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith([
-        { admin_id: 1, admin_name: 'John', admin_surname: 'Doe', admin_email: 'john.doe@example.com' },
-        { admin_id: 2, admin_name: 'Jane', admin_surname: 'Smith', admin_email: 'jane.smith@example.com' },
-      ]);
+      expect(response.status).toBe(200);
+      expect(response.body.token).toBe('mockToken');
     });
 
-    it('debería manejar errores del servidor', async () => {
-      pool.query.mockRejectedValue(new Error('Database error'));
+    it('should return 400 if credentials are invalid', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ admin_email: 'adminuser@example.com', admin_password: 'hashedPassword' }] });
+      bcrypt.compare.mockResolvedValueOnce(false);
 
-      await getAllAdmins(req, res, next);
+      const response = await request(app).post('/api/admin/login').send({
+        admin_email: 'adminuser@example.com',
+        admin_password: 'wrongpassword'
+      });
 
-      expect(console.error).toHaveBeenCalledWith('Database error');
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'Error en el servidor' });
+      expect(response.status).toBe(400);
+      expect(response.body.msg).toBe('Credenciales inválidas');
+    });
+
+    it('should return 500 on server error', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+      const response = await request(app).post('/api/admin/login').send({
+        admin_email: 'adminuser@example.com',
+        admin_password: 'password123'
+      });
+
+      expect(response.status).toBe(500);
+      expect(response.body.msg).toBe('Error en el servidor');
     });
   });
 
-  describe('updateAdmin', () => {
-    it('debería actualizar un administrador existente', async () => {
-      req.params.id = '1';
-      req.body = {
-        admin_name: 'John',
-        admin_surname: 'Doe',
-        admin_email: 'john.doe@example.com',
-        admin_password: 'newpassword123',
-      };
+  describe('Protected Routes', () => {
+    describe('GET /admins', () => {
+      it('should return all admins if authenticated', async () => {
+        pool.query.mockResolvedValueOnce({
+          rows: [
+            { admin_id: 1, admin_name: 'Admin', admin_surname: 'User', admin_email: 'admin1@example.com' },
+            { admin_id: 2, admin_name: 'Admin', admin_surname: 'Two', admin_email: 'admin2@example.com' }
+          ]
+        });
 
-      validationResult.mockReturnValue({ isEmpty: () => true });
+        const response = await request(app)
+          .get('/api/admin/admins')
+          .set('Authorization', 'Bearer mockToken');
 
-      bcrypt.hash.mockResolvedValue('newHashedPassword');
-      pool.query.mockResolvedValueOnce({
-        rows: [{ admin_id: 1, admin_name: 'John', admin_surname: 'Doe', admin_email: 'john.doe@example.com' }],
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveLength(2);
+        expect(response.body[0]).toMatchObject({ admin_name: 'Admin', admin_email: 'admin1@example.com' });
       });
 
-      await updateAdmin(req, res, next);
+      it('should return 500 on database error', async () => {
+        pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-      expect(pool.query).toHaveBeenCalledTimes(1);
-      expect(bcrypt.hash).toHaveBeenCalledWith('newpassword123', 10);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        admin_id: 1,
-        admin_name: 'John',
-        admin_surname: 'Doe',
-        admin_email: 'john.doe@example.com',
+        const response = await request(app)
+          .get('/api/admin/admins')
+          .set('Authorization', 'Bearer mockToken');
+
+        expect(response.status).toBe(500);
+        expect(response.body.msg).toBe('Error en el servidor');
       });
     });
 
-    it('debería devolver un error si el administrador no es encontrado', async () => {
-      req.params.id = '999';
-      req.body = {
-        admin_name: 'John',
-        admin_surname: 'Doe',
-      };
+    describe('PUT /admins/:id', () => {
+      it('should update admin info with valid data', async () => {
+        pool.query.mockResolvedValueOnce({
+          rows: [{ admin_id: 1, ...updatedAdmin }]
+        });
 
-      validationResult.mockReturnValue({ isEmpty: () => true });
+        const response = await request(app)
+          .put('/api/admin/admins/1')
+          .set('Authorization', 'Bearer mockToken')
+          .send(updatedAdmin);
 
-      pool.query.mockResolvedValueOnce({ rows: [] });
-
-      await updateAdmin(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'Administrador no encontrado' });
-    });
-
-    it('debería manejar errores de validación', async () => {
-      validationResult.mockReturnValue({
-        isEmpty: () => false,
-        array: () => [{ msg: 'Invalid input' }],
+        expect(response.status).toBe(200);
+        expect(response.body).toMatchObject(updatedAdmin);
       });
 
-      await updateAdmin(req, res, next);
+      it('should return 404 if admin not found', async () => {
+        pool.query.mockResolvedValueOnce({ rows: [] });
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'Invalid input', errors: [{ msg: 'Invalid input' }] });
-    });
+        const response = await request(app)
+          .put('/api/admin/admins/999')
+          .set('Authorization', 'Bearer mockToken')
+          .send(updatedAdmin);
 
-    it('debería manejar errores del servidor', async () => {
-      req.params.id = '1';
-      req.body = {
-        admin_name: 'John',
-        admin_surname: 'Doe',
-      };
+        expect(response.status).toBe(404);
+        expect(response.body.msg).toBe('Administrador no encontrado');
+      });
 
-      validationResult.mockReturnValue({ isEmpty: () => true });
+      it('should return 400 for invalid email format', async () => {
+        const invalidData = { ...updatedAdmin, admin_email: 'invalid-email' };
 
-      pool.query.mockRejectedValue(new Error('Database error'));
+        const response = await request(app)
+          .put('/api/admin/admins/1')
+          .set('Authorization', 'Bearer mockToken')
+          .send(invalidData);
 
-      await updateAdmin(req, res, next);
+        expect(response.status).toBe(400);
+        expect(response.body.msg).toBe('Invalid input');
+      });
 
-      expect(console.error).toHaveBeenCalledWith('Database error');
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'Error en el servidor' });
+      it('should return 500 on database error', async () => {
+        pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+        const response = await request(app)
+          .put('/api/admin/admins/1')
+          .set('Authorization', 'Bearer mockToken')
+          .send(updatedAdmin);
+
+        expect(response.status).toBe(500);
+        expect(response.body.msg).toBe('Error en el servidor');
+      });
     });
   });
 });
