@@ -6,6 +6,7 @@ const {
 const pool = require('../db');
 const fs = require('fs');
 const multimediaProcess = require('../util/multimediaProcess');
+const path = require('path');
 
 jest.mock('../db', () => ({
   query: jest.fn(),
@@ -141,7 +142,15 @@ describe('Labs Controller', () => {
       const next = jest.fn();
 
       pool.query
-        .mockResolvedValueOnce({ rows: [{ lab_images: 'image1.png', lab_video: 'video.mp4', lab_podcast: 'podcast.mp3' }] }) // Seleccionar laboratorio
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              lab_images: 'image1.png - image2.png',
+              lab_video: 'video.mp4',
+              lab_podcast: 'podcast.mp3',
+            },
+          ],
+        }) // Seleccionar laboratorio
         .mockResolvedValueOnce({ rowCount: 1 }); // Eliminar laboratorio
 
       fs.existsSync.mockReturnValue(true);
