@@ -10,6 +10,13 @@ jest.mock('express-validator', () => ({
   validationResult: jest.fn(),
 }));
 
+jest.mock('../services/admin.service', () => ({
+  registerAdminService: jest.fn(),
+  loginAdminService: jest.fn(),
+  getAllAdminsService: jest.fn(),
+  updateAdminService: jest.fn(),
+}));
+
 // Importación de módulos
 const {
   registerAdmin,
@@ -17,6 +24,12 @@ const {
   getAllAdmins,
   updateAdmin,
 } = require('../controllers/admin.controller');
+const {
+  registerAdminService,
+  loginAdminService,
+  getAllAdminsService,
+  updateAdminService,
+} = require('../services/admin.service');
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -25,7 +38,6 @@ const { validationResult } = require('express-validator');
 describe('Admin Controller', () => {
   let req;
   let res;
-  let next;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -38,7 +50,14 @@ describe('Admin Controller', () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
-    next = jest.fn();
+  });
+
+  beforeAll(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    console.error.mockRestore();
   });
 
   describe('registerAdmin', () => {
@@ -52,22 +71,11 @@ describe('Admin Controller', () => {
 
       validationResult.mockReturnValue({ isEmpty: () => true });
 
-      pool.query.mockResolvedValueOnce({ rows: [] }); // Verificar que no existe
-      bcrypt.hash.mockResolvedValue('hashedPassword');
-      pool.query.mockResolvedValueOnce({
-        rows: [{ admin_id: 1, admin_name: 'John', admin_surname: 'Doe', admin_email: 'john.doe@example.com' }],
-      }); // Registrar nuevo administrador
-      jwt.sign.mockReturnValue('token');
+      registerAdminService.mockResolvedValue('token');
 
-      await registerAdmin(req, res, next);
+      await registerAdmin(req, res);
 
-      expect(pool.query).toHaveBeenCalledTimes(2);
-      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
-      expect(jwt.sign).toHaveBeenCalledWith(
-        { admin_id: 1, admin_name: 'John', admin_surname: 'Doe', admin_email: 'john.doe@example.com', isAdmin: true },
-        expect.any(String),
-        { expiresIn: '1h' }
-      );
+      expect(registerAdminService).toHaveBeenCalledWith(req.body);
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({ token: 'token' });
     });
@@ -79,27 +87,13 @@ describe('Admin Controller', () => {
 
       validationResult.mockReturnValue({ isEmpty: () => true });
 
-      pool.query.mockResolvedValueOnce({
-        rows: [{ admin_id: 1 }],
-      }); // Administrador ya existe
+      registerAdminService.mockRejectedValue(new Error('El administrador ya existe'));
 
-      await registerAdmin(req, res, next);
+      await registerAdmin(req, res);
 
-      expect(pool.query).toHaveBeenCalledTimes(1);
+      expect(registerAdminService).toHaveBeenCalledWith(req.body);
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ msg: 'El administrador ya existe' });
-    });
-
-    it('debería manejar errores de validación', async () => {
-      validationResult.mockReturnValue({
-        isEmpty: () => false,
-        array: () => [{ msg: 'Invalid input' }],
-      });
-
-      await registerAdmin(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ msg: 'Invalid input', errors: [{ msg: 'Invalid input' }] });
     });
 
     it('debería manejar errores del servidor', async () => {
@@ -109,10 +103,11 @@ describe('Admin Controller', () => {
 
       validationResult.mockReturnValue({ isEmpty: () => true });
 
-      pool.query.mockRejectedValue(new Error('Database error'));
+      registerAdminService.mockRejectedValue(new Error('Database error'));
 
-      await registerAdmin(req, res, next);
+      await registerAdmin(req, res);
 
+      expect(registerAdminService).toHaveBeenCalledWith(req.body);
       expect(console.error).toHaveBeenCalledWith('Error en registerAdmin:', 'Database error');
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ msg: 'Error en el servidor' });

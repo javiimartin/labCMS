@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const pool = require('../db');
 const generateToken = require('../util/generateToken');
 
+// admin.service.js
 const registerAdminService = async ({ admin_name, admin_surname, admin_email, admin_password }) => {
   if (!/^\S+@\S+\.\S+$/.test(admin_email)) {
     throw new Error('Invalid input');
@@ -20,6 +21,7 @@ const registerAdminService = async ({ admin_name, admin_surname, admin_email, ad
 
   return generateToken({ ...newAdmin.rows[0], isAdmin: true });
 };
+
 
 const loginAdminService = async ({ admin_email, admin_password }) => {
   const { rows } = await pool.query('SELECT * FROM dep_admin WHERE admin_email = $1', [admin_email]);
