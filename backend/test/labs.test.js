@@ -1,3 +1,11 @@
+// Mover los mocks al inicio del archivo, antes de cualquier require
+jest.mock('../db', () => ({
+  query: jest.fn(),
+}));
+jest.mock('fs');
+jest.mock('../util/multimediaProcess', () => jest.fn());
+
+// Ahora importar los módulos necesarios
 const {
   createLab,
   updateLab,
@@ -6,12 +14,6 @@ const {
 const pool = require('../db');
 const fs = require('fs');
 const multimediaProcess = require('../util/multimediaProcess');
-
-jest.mock('../db', () => ({
-  query: jest.fn(),
-}));
-jest.mock('fs');
-jest.mock('../util/multimediaProcess', () => jest.fn());
 
 describe('Labs Controller', () => {
   beforeEach(() => {
@@ -33,7 +35,7 @@ describe('Labs Controller', () => {
           lab_podcast: [{ originalname: 'podcast.mp3' }],
         },
       };
-      const res = { json: jest.fn() };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
       const next = jest.fn();
 
       multimediaProcess
@@ -60,6 +62,7 @@ describe('Labs Controller', () => {
           'processed_podcast.mp3',
         ])
       );
+      expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({ lab_code: 1 });
     });
 
@@ -96,7 +99,7 @@ describe('Labs Controller', () => {
       const next = jest.fn();
 
       fs.existsSync.mockReturnValue(true);
-      fs.unlinkSync.mockImplementation(() => {});
+      fs.unlinkSync = jest.fn();
 
       multimediaProcess
         .mockResolvedValueOnce('processed_new_image.png')
@@ -153,7 +156,7 @@ describe('Labs Controller', () => {
         .mockResolvedValueOnce({ rowCount: 1 }); // Eliminar laboratorio
 
       fs.existsSync.mockReturnValue(true);
-      fs.unlinkSync.mockImplementation(() => {});
+      fs.unlinkSync = jest.fn();
 
       await deleteLab(req, res, next);
 
