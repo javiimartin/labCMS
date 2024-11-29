@@ -5,7 +5,7 @@ const {
   getUserProfile,
   updateUserProfile,
 } = require('../controllers/user.controller');
-const { studentAuthMiddleware } = require('../util/authMiddleware');
+const { authMiddleware } = require('../util/authMiddleware');
 const router = express.Router();
 
 /**
@@ -147,7 +147,7 @@ router.post('/login', loginUser);
  *       500:
  *         description: Error en el servidor.
  */
-router.get('/profile', studentAuthMiddleware, getUserProfile);
+router.get('/profile', authMiddleware('student'), getUserProfile);
 
 /**
  * @swagger
@@ -220,6 +220,6 @@ router.get('/profile', studentAuthMiddleware, getUserProfile);
  *       500:
  *         description: Error en el servidor.
  */
-router.put('/profile', studentAuthMiddleware, updateUserProfile);
+router.put('/profile', authMiddleware('student'), updateUserProfile);
 
 module.exports = router;

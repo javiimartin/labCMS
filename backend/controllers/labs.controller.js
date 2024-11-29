@@ -1,91 +1,126 @@
 const {
-  createLab,
-  updateLab,
-  getAllLabs,
-  getLabById,
-  deleteLab,
-} = require('../services/lab.service');
-const logger = require('../logger');
+  getAllLabsService,
+  getLabByIdService,
+  createLabService,
+  updateLabService,
+  deleteLabService,
+  deleteLabImageService,
+  deleteLabMediaService,
+  followLabService,
+  unfollowLabService,
+  checkIfFollowingService,
+  getLabFollowersCountService,
+} = require('../services/labs.service');
 
-const createLabHandler = async (req, res, next) => {
+const getAllLabs = async (req, res, next) => {
   try {
-    const timestamp = Date.now();
-    const newLab = await createLab(req.body, req.files, timestamp);
-
-    logger.info(`Lab created successfully with code: ${newLab.lab_code}`);
-    res.status(201).json({ lab_code: newLab.lab_code });
-  } catch (error) {
-    logger.error(`Error in createLabHandler: ${error.message}`);
-    next(error);
-  }
-};
-
-const updateLabHandler = async (req, res, next) => {
-  try {
-    const timestamp = Date.now();
-    const updatedLab = await updateLab(
-      req.params.id,
-      req.body,
-      req.files,
-      req.body.imagesToDelete,
-      req.body.videoToDelete,
-      req.body.audioToDelete,
-      timestamp
-    );
-
-    logger.info(`Lab updated successfully with code: ${updatedLab.lab_code}`);
-    res.json({ lab_code: updatedLab.lab_code });
-  } catch (error) {
-    logger.error(`Error in updateLabHandler for lab ID ${req.params.id}: ${error.message}`);
-    next(error);
-  }
-};
-
-const getAllLabsHandler = async (req, res, next) => {
-  try {
-    const labs = await getAllLabs();
-
-    logger.info(`Retrieved all labs. Total count: ${labs.length}`);
+    const labs = await getAllLabsService();
     res.json(labs);
   } catch (error) {
-    logger.error(`Error in getAllLabsHandler: ${error.message}`);
     next(error);
   }
 };
 
-const getLabByIdHandler = async (req, res, next) => {
+const getLabById = async (req, res, next) => {
   try {
-    const lab = await getLabById(req.params.id);
-
-    if (!lab) {
-      logger.warn(`Lab with ID ${req.params.id} not found`);
-      return res.status(404).json({ msg: 'Lab not found' });
-    }
-
-    logger.info(`Retrieved lab with ID: ${req.params.id}`);
+    const lab = await getLabByIdService(req.params.id);
     res.json(lab);
   } catch (error) {
-    logger.error(`Error in getLabByIdHandler for lab ID ${req.params.id}: ${error.message}`);
     next(error);
   }
 };
 
-const deleteLabHandler = async (req, res, next) => {
+const createLab = async (req, res, next) => {
   try {
-    await deleteLab(req.params.id);
+    const lab = await createLabService(req.body, req.files);
+    res.status(201).json(lab);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    logger.info(`Lab deleted successfully with ID: ${req.params.id}`);
+const updateLab = async (req, res, next) => {
+  try {
+    const updatedLab = await updateLabService(req.params.id, req.body, req.files);
+    res.json(updatedLab);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteLab = async (req, res, next) => {
+  try {
+    await deleteLabService(req.params.id);
     res.sendStatus(204);
   } catch (error) {
-    logger.error(`Error in deleteLabHandler for lab ID ${req.params.id}: ${error.message}`);
+    next(error);
+  }
+};
+
+const deleteLabImage = async (req, res, next) => {
+  try {
+    const updatedLab = await deleteLabImageService(req.params.id, req.body.image);
+    res.json(updatedLab);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteLabMedia = async (req, res, next) => {
+  try {
+    const updatedLab = await deleteLabMediaService(req.params.id, req.body.mediaType, req.body.mediaUrl);
+    res.json(updatedLab);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const followLab = async (req, res, next) => {
+  try {
+    await followLabService(req.params.id, req.user.user_id);
+    res.sendStatus(204);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const unfollowLab = async (req, res, next) => {
+  try {
+    await unfollowLabService(req.params.id, req.user.user_id);
+    res.sendStatus(204);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const checkIfFollowing = async (req, res, next) => {
+  try {
+    const isFollowing = await checkIfFollowingService(req.params.id, req.params.userId);
+    res.json({ isFollowing });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getLabFollowersCount = async (req, res, next) => {
+  try {
+    const count = await getLabFollowersCountService(req.params.id);
+    res.json({ count });
+  } catch (error) {
     next(error);
   }
 };
 
 module.exports = {
-  createLabHandler,
-  updateLabHandler,
-  getAllLabsHandler,
-  getLabByIdHandler,
-  deleteLabHandler,
+  getAllLabs,
+  getLabById,
+  createLab,
+  updateLab,
+  deleteLab,
+  deleteLabImage,
+  deleteLabMedia,
+  followLab,
+  unfollowLab,
+  checkIfFollowing,
+  getLabFollowersCount,
 };

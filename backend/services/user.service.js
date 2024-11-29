@@ -2,76 +2,96 @@ const bcrypt = require('bcrypt');
 const pool = require('../db');
 const generateToken = require('../util/generateToken');
 
-const findUserByEmail = async (email) => {
-  const { rows } = await pool.query('SELECT * FROM dep_user WHERE user_email = $1', [email]);
-  return rows[0];
-};
+// Registro de usuario
+const registerUserService = async ({
+  user_name,
+  user_surname,
+  user_email,
+  user_password,
+  user_gender,
+  user_age,
+  user_degree,
+  user_zipcode,
+}) => {
+  const { rows } = await pool.query('SELECT * FROM dep_user WHERE user_email = $1', [user_email]);
+  if (rows.length > 0) {
+    throw new Error('El usuario ya existe');
+  }
 
-const findUserById = async (userId) => {
-  const { rows } = await pool.query('SELECT * FROM dep_user WHERE user_id = $1', [userId]);
-  return rows[0];
-};
-
-const createUser = async (userData) => {
-  const hashedPassword = await bcrypt.hash(userData.user_password, 10);
-  const { rows } = await pool.query(
+  const hashedPassword = await bcrypt.hash(user_password, 10);
+  const { rows: newUser } = await pool.query(
     'INSERT INTO dep_user (user_name, user_surname, user_email, user_password, user_gender, user_age, user_degree, user_zipcode, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-    [
-      userData.user_name,
-      userData.user_surname,
-      userData.user_email,
-      hashedPassword,
-      userData.user_gender,
-      userData.user_age,
-      userData.user_degree,
-      userData.user_zipcode,
-      'student',
-    ]
+    [user_name, user_surname, user_email, hashedPassword, user_gender, user_age, user_degree, user_zipcode, 'student']
   );
-  return rows[0];
+
+  return generateToken(newUser[0]);
 };
 
-const updateUserById = async (userId, userData) => {
-  const hashedPassword = userData.user_password
-    ? await bcrypt.hash(userData.user_password, 10)
-    : undefined;
+// Login de usuario
+const loginUserService = async (user_email, user_password) => {
+  const { rows } = await pool.query('SELECT * FROM dep_user WHERE user_email = $1', [user_email]);
+  if (rows.length === 0) {
+    throw new Error('Credenciales inválidas');
+  }
+
+  const isMatch = await bcrypt.compare(user_password, rows[0].user_password);
+  if (!isMatch) {
+    throw new Error('Credenciales inválidas');
+  }
+
+  return generateToken(rows[0]);
+};
+
+// Obtener perfil del usuario
+const getUserProfileService = async (user_id) => {
+  const { rows } = await pool.query('SELECT * FROM dep_user WHERE user_id = $1', [user_id]);
+  if (rows.length === 0) {
+    throw new Error('Usuario no encontrado');
+  }
+
+  const { user_password, ...userProfile } = rows[0];
+  return userProfile;
+};
+
+// Actualizar perfil del usuario
+const updateUserProfileService = async (user_id, {
+  user_name,
+  user_surname,
+  user_email,
+  user_password,
+  user_gender,
+  user_age,
+  user_degree,
+  user_zipcode,
+}) => {
+  const { rows: existingUser } = await pool.query('SELECT * FROM dep_user WHERE user_id = $1', [user_id]);
+  if (existingUser.length === 0) {
+    throw new Error('Usuario no encontrado');
+  }
+
+  const hashedPassword = user_password ? await bcrypt.hash(user_password, 10) : undefined;
 
   const { rows } = await pool.query(
     `UPDATE dep_user SET
-      user_name = $1,
-      user_surname = $2,
-      user_email = $3,
-      user_password = COALESCE($4, user_password),
-      user_gender = $5,
-      user_age = $6,
-      user_degree = $7,
-      user_zipcode = $8
-      WHERE user_id = $9 RETURNING *`,
-    [
-      userData.user_name,
-      userData.user_surname,
-      userData.user_email,
-      hashedPassword,
-      userData.user_gender,
-      userData.user_age,
-      userData.user_degree,
-      userData.user_zipcode,
-      userId,
-    ]
+    user_name = $1,
+    user_surname = $2,
+    user_email = $3,
+    user_password = COALESCE($4, user_password),
+    user_gender = $5,
+    user_age = $6,
+    user_degree = $7,
+    user_zipcode = $8
+    WHERE user_id = $9 RETURNING *`,
+    [user_name, user_surname, user_email, hashedPassword, user_gender, user_age, user_degree, user_zipcode, user_id]
   );
 
-  return rows[0];
-};
-
-const comparePasswords = async (inputPassword, storedPassword) => {
-  return await bcrypt.compare(inputPassword, storedPassword);
+  const { user_password: _, ...updatedUserProfile } = rows[0];
+  return updatedUserProfile;
 };
 
 module.exports = {
-  findUserByEmail,
-  findUserById,
-  createUser,
-  updateUserById,
-  comparePasswords,
-  generateToken,
+  registerUserService,
+  loginUserService,
+  getUserProfileService,
+  updateUserProfileService,
 };

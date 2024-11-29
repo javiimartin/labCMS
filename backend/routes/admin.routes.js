@@ -1,6 +1,6 @@
 const express = require('express');
 const { registerAdmin, loginAdmin, getAllAdmins, updateAdmin } = require('../controllers/admin.controller');
-const { adminAuthMiddleware } = require('../util/authMiddleware'); // Middleware de autenticación básica para administradores
+const { authMiddleware } = require('../util/authMiddleware'); // Middleware de autenticación básica para administradores
 
 const router = express.Router();
 
@@ -91,7 +91,7 @@ router.post('/login', loginAdmin);
  *       500:
  *         description: Error en el servidor.
  */
-router.post('/register', adminAuthMiddleware, registerAdmin);
+router.post('/register', authMiddleware('admin'), registerAdmin);
 
 /**
  * @swagger
@@ -128,7 +128,7 @@ router.post('/register', adminAuthMiddleware, registerAdmin);
  *       500:
  *         description: Error en el servidor.
  */
-router.get('/admins', adminAuthMiddleware, getAllAdmins);
+router.get('/admins', authMiddleware('admin'), getAllAdmins);
 
 /**
  * @swagger
@@ -191,6 +191,6 @@ router.get('/admins', adminAuthMiddleware, getAllAdmins);
  *       500:
  *         description: Error en el servidor.
  */
-router.put('/admins/:id', adminAuthMiddleware, updateAdmin);
+router.put('/admins/:id', authMiddleware('admin'), updateAdmin);
 
 module.exports = router;
