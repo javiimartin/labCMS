@@ -6,6 +6,8 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocs = require('./swaggerConfig'); 
 
 const labsRouter = require('./routes/labs.routes');
 const userRouter = require('./routes/user.routes');
@@ -29,6 +31,9 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.set('trust proxy', 1); 
+
+// Configurar Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(morgan('dev'));
 app.use(express.json());
