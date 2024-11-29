@@ -2,11 +2,11 @@ const request = require('supertest');
 const express = require('express');
 const userRouter = require('../src/routes/user.routes');
 const bcrypt = require('bcrypt');
-const pool = require('../config/db');
+const pool = require('../db');
 const jwt = require('jsonwebtoken');
 
 jest.mock('bcrypt');
-jest.mock('../config/db');
+jest.mock('../db');
 jest.mock('../src/util/generateToken', () => jest.fn().mockReturnValue('mockToken'));
 
 const app = express();
