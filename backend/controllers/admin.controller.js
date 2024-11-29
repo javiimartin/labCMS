@@ -1,10 +1,13 @@
-const bcrypt = require('bcrypt');
-const pool = require('../db');
 const { validationResult } = require('express-validator');
-const generateToken = require('../util/generateToken');
+const {
+  findAdminByEmail,
+  createAdmin,
+  getAllAdmins,
+  updateAdminById,
+  comparePasswords,
+  generateToken
+} = require('../services/admin.service');
 
-// Registro de administrador
-// Registro de administrador
 const registerAdmin = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -13,27 +16,19 @@ const registerAdmin = async (req, res) => {
 
   const { admin_name, admin_surname, admin_email, admin_password } = req.body;
 
-  // Validar formato de email
   if (!/^\S+@\S+\.\S+$/.test(admin_email)) {
     return res.status(400).json({ msg: 'Invalid input' });
   }
 
   try {
-    // Verificar si el administrador ya existe
-    const { rows } = await pool.query('SELECT * FROM dep_admin WHERE admin_email = $1', [admin_email]);
-    if (rows.length > 0) {
+    const existingAdmin = await findAdminByEmail(admin_email);
+    if (existingAdmin) {
       return res.status(400).json({ msg: 'El administrador ya existe' });
     }
 
-    // Hashear la contraseña e insertar nuevo administrador
-    const hashedPassword = await bcrypt.hash(admin_password, 10);
-    const newAdmin = await pool.query(
-      'INSERT INTO dep_admin (admin_name, admin_surname, admin_email, admin_password) VALUES ($1, $2, $3, $4) RETURNING *',
-      [admin_name, admin_surname, admin_email, hashedPassword]
-    );
+    const newAdmin = await createAdmin(admin_name, admin_surname, admin_email, admin_password);
+    const token = generateToken({ ...newAdmin, isAdmin: true });
 
-    // Generar y enviar token JWT
-    const token = generateToken({ ...newAdmin.rows[0], isAdmin: true });
     return res.status(201).json({ token });
   } catch (error) {
     console.error(error.message);
@@ -41,25 +36,21 @@ const registerAdmin = async (req, res) => {
   }
 };
 
-// Login de administrador
 const loginAdmin = async (req, res) => {
   const { admin_email, admin_password } = req.body;
 
   try {
-    // Verificar si el administrador existe
-    const { rows } = await pool.query('SELECT * FROM dep_admin WHERE admin_email = $1', [admin_email]);
-    if (rows.length === 0) {
+    const admin = await findAdminByEmail(admin_email);
+    if (!admin) {
       return res.status(400).json({ msg: 'Credenciales inválidas' });
     }
 
-    // Comparar la contraseña
-    const isMatch = await bcrypt.compare(admin_password, rows[0].admin_password);
+    const isMatch = await comparePasswords(admin_password, admin.admin_password);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Credenciales inválidas' });
     }
 
-    // Generar y enviar token JWT
-    const token = generateToken({ ...rows[0], isAdmin: true });
+    const token = generateToken({ ...admin, isAdmin: true });
     return res.status(200).json({ token });
   } catch (error) {
     console.error(error.message);
@@ -67,59 +58,36 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-// Obtener todos los administradores
-const getAllAdmins = async (req, res) => {
+const getAllAdminsHandler = async (req, res) => {
   try {
-    const admins = await pool.query('SELECT * FROM dep_admin');
-    const adminData = admins.rows.map(admin => {
-      const { admin_password, ...adminInfo } = admin;
-      return adminInfo;
-    });
-    return res.status(200).json(adminData);
+    const admins = await getAllAdmins();
+    return res.status(200).json(admins);
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({ msg: 'Error en el servidor' });
   }
 };
 
-// Actualizar información de un administrador con validación
-const updateAdmin = async (req, res) => {
-  // Validación directa en el controlador
-  const { admin_name, admin_surname, admin_email, admin_password } = req.body;
-
+const updateAdminHandler = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ msg: 'Invalid input', errors: errors.array() });
   }
 
+  const { admin_name, admin_surname, admin_email, admin_password } = req.body;
+
+  if (admin_email && !/^\S+@\S+\.\S+$/.test(admin_email)) {
+    return res.status(400).json({ msg: 'Invalid input' });
+  }
+
   try {
-    const hashedPassword = admin_password ? await bcrypt.hash(admin_password, 10) : undefined;
-    
-    // Aquí las validaciones específicas que necesitas (más sencillas)
-    if (admin_email && !/^\S+@\S+\.\S+$/.test(admin_email)) {
-      return res.status(400).json({ msg: 'Invalid input' });  // Cambié el mensaje a 'Invalid input'
-    }
+    const updatedAdmin = await updateAdminById(req.params.id, admin_name, admin_surname, admin_email, admin_password);
 
-    if (admin_password && admin_password.length < 6) {
-      return res.status(400).json({ msg: 'Invalid input' });  // Cambié el mensaje a 'Invalid input'
-    }
-
-    const { rows } = await pool.query(
-      `UPDATE dep_admin SET
-        admin_name = $1,
-        admin_surname = $2,
-        admin_email = $3,
-        admin_password = COALESCE($4, admin_password)
-        WHERE admin_id = $5 RETURNING *`,
-      [admin_name, admin_surname, admin_email, hashedPassword, req.params.id]
-    );
-
-    if (rows.length === 0) {
+    if (!updatedAdmin) {
       return res.status(404).json({ msg: 'Administrador no encontrado' });
     }
 
-    // Excluir la contraseña del perfil de administrador actualizado
-    const { admin_password: _, ...adminData } = rows[0];
+    const { admin_password: _, ...adminData } = updatedAdmin;
     return res.status(200).json(adminData);
   } catch (error) {
     console.error(error.message);
@@ -130,6 +98,6 @@ const updateAdmin = async (req, res) => {
 module.exports = {
   registerAdmin,
   loginAdmin,
-  getAllAdmins,
-  updateAdmin
+  getAllAdminsHandler,
+  updateAdminHandler
 };
