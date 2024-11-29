@@ -13,13 +13,18 @@ const registerAdmin = async (req, res) => {
   }
 
   try {
-    const token = await registerAdminService(req.body);
-    return res.status(201).json({ token });
+    const existingAdmin = await pool.query('SELECT * FROM dep_admin WHERE admin_email = $1', [req.body.admin_email]);
+    if (existingAdmin.rows.length > 0) {
+      return res.status(400).json({ msg: 'El administrador ya existe' });
+    }
+
+    // Lógica para registrar el administrador
   } catch (error) {
-    console.error(error.message);
+    console.error('Error en registerAdmin:', error.message);
     return res.status(500).json({ msg: 'Error en el servidor' });
   }
 };
+
 
 const loginAdmin = async (req, res) => {
   try {
