@@ -9,7 +9,7 @@ const generateToken = require('../util/generateToken');
 
 jest.mock('bcrypt');
 jest.mock('../db');
-jest.mock('../src/util/generateToken', () => jest.fn().mockReturnValue('mockToken'));
+jest.mock('../util/generateToken', () => jest.fn().mockReturnValue('mockToken'));
 
 const app = express();
 app.use(express.json());
