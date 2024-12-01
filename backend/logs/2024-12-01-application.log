@@ -1,0 +1,10 @@
+2024-12-01 20:07:42 [INFO]: Usuario registrado con éxito: testuser@example.com
+2024-12-01 20:07:42 [ERROR]: Error al registrar usuario: El usuario ya existe
+2024-12-01 20:07:42 [ERROR]: Error al registrar usuario: Cannot destructure property 'rows' of '((cov_1czqrh8ut3(...).s[4]++) , (intermediate value))' as it is undefined.
+2024-12-01 20:07:42 [ERROR]: Error al registrar usuario: Database error
+2024-12-01 20:07:42 [INFO]: Usuario inició sesión: testuser@example.com
+2024-12-01 20:07:42 [WARN]: Intento fallido de login para usuario: testuser@example.com
+2024-12-01 20:07:42 [WARN]: Intento fallido de login para usuario: testuser@example.com
+2024-12-01 20:07:42 [INFO]: Consulta del perfil del usuario ID: 1
+2024-12-01 20:07:42 [ERROR]: Error al obtener el perfil del usuario ID 1: Usuario no encontrado
+2024-12-01 20:07:42 [INFO]: Perfil actualizado con éxito para usuario ID: 1
