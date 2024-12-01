@@ -46,7 +46,7 @@ const createLabService = async (labData, files) => {
 };
 
 const updateLabService = async (id, labData, files) => {
-  const { lab_name, lab_description, lab_objectives, lab_proyects } = labData;
+  const { lab_name, lab_description, lab_objectives, lab_proyects, imagesToDelete = [] } = labData;
   const timestamp = Date.now();
 
   const existingLab = await pool.query('SELECT * FROM lab WHERE lab_code = $1', [id]);
@@ -58,6 +58,16 @@ const updateLabService = async (id, labData, files) => {
   let lab_video = existingLab.rows[0].lab_video;
   let lab_podcast = existingLab.rows[0].lab_podcast;
 
+  // Eliminar imágenes especificadas
+  imagesToDelete.forEach((image) => {
+    const filePath = path.join(__dirname, '..', 'uploads', image);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    lab_images = lab_images.filter((img) => img !== image);
+  });
+
+  // Procesar nuevas imágenes, video y podcast
   if (files && files.lab_images) {
     const newImages = await Promise.all(files.lab_images.map((file) => multimediaProcess(file, 'image', timestamp)));
     lab_images = [...lab_images, ...newImages];
@@ -85,8 +95,39 @@ const deleteLabService = async (id) => {
     throw new Error('Lab not found');
   }
 
+  const { lab_images, lab_video, lab_podcast } = existingLab.rows[0];
+
+  // Eliminar imágenes asociadas
+  if (lab_images) {
+    const images = lab_images.split(' - ');
+    images.forEach((image) => {
+      const filePath = path.join(__dirname, '..', 'uploads', image);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    });
+  }
+
+  // Eliminar video asociado
+  if (lab_video) {
+    const videoPath = path.join(__dirname, '..', 'uploads', lab_video);
+    if (fs.existsSync(videoPath)) {
+      fs.unlinkSync(videoPath);
+    }
+  }
+
+  // Eliminar podcast asociado
+  if (lab_podcast) {
+    const podcastPath = path.join(__dirname, '..', 'uploads', lab_podcast);
+    if (fs.existsSync(podcastPath)) {
+      fs.unlinkSync(podcastPath);
+    }
+  }
+
+  // Eliminar laboratorio de la base de datos
   await pool.query('DELETE FROM lab WHERE lab_code = $1', [id]);
 };
+
 
 const deleteLabImageService = async (id, image) => {
   const existingLab = await pool.query('SELECT lab_images FROM lab WHERE lab_code = $1', [id]);

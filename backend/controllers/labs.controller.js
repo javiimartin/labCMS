@@ -53,6 +53,9 @@ const deleteLab = async (req, res, next) => {
     await deleteLabService(req.params.id);
     res.sendStatus(204);
   } catch (error) {
+    if (error.message === 'Lab not found') {
+      return res.status(404).json({ message: error.message });
+    }
     next(error);
   }
 };

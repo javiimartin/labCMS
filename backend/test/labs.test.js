@@ -97,14 +97,17 @@ describe('Labs Controller', () => {
       };
       const res = { json: jest.fn() };
       const next = jest.fn();
-
-      fs.existsSync.mockReturnValue(true);
+    
+      // Mock de los métodos de fs
+      fs.existsSync.mockImplementation((filePath) => filePath.includes('image1.png'));
       fs.unlinkSync = jest.fn();
-
+    
+      // Mock de multimediaProcess
       multimediaProcess
         .mockResolvedValueOnce('processed_new_image.png')
         .mockResolvedValueOnce('processed_new_video.mp4');
-
+    
+      // Mock de consultas a la base de datos
       pool.query
         .mockResolvedValueOnce({
           rows: [
@@ -112,13 +115,13 @@ describe('Labs Controller', () => {
           ],
         })
         .mockResolvedValueOnce({ rows: [{ lab_code: 1 }] });
-
+    
       await updateLab(req, res, next);
-
+    
       expect(pool.query).toHaveBeenCalledTimes(2);
-      expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('image1.png'));
+      expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('image1.png')); // Verifica eliminación de archivo
       expect(res.json).toHaveBeenCalledWith({ lab_code: 1 });
-    });
+    });    
 
     it('debería manejar errores y llamar a next()', async () => {
       const req = {
