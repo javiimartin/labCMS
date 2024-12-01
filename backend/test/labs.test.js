@@ -145,7 +145,7 @@ describe('Labs Controller', () => {
       const req = { params: { id: '1' } };
       const res = { sendStatus: jest.fn() };
       const next = jest.fn();
-
+    
       pool.query
         .mockResolvedValueOnce({
           rows: [
@@ -155,18 +155,24 @@ describe('Labs Controller', () => {
               lab_podcast: 'podcast.mp3',
             },
           ],
-        }) // Seleccionar laboratorio
-        .mockResolvedValueOnce({ rowCount: 1 }); // Eliminar laboratorio
-
-      fs.existsSync.mockReturnValue(true);
-      fs.unlinkSync = jest.fn();
-
+        }) // Simula obtener el laboratorio
+        .mockResolvedValueOnce({ rowCount: 1 }); // Simula eliminación de la base de datos
+    
+      // Mock de fs
+      fs.existsSync.mockReturnValue(true); // Simula que los archivos existen
+      fs.unlinkSync = jest.fn(); // Mock para eliminar archivos
+    
       await deleteLab(req, res, next);
-
-      expect(pool.query).toHaveBeenCalledTimes(2);
-      expect(fs.unlinkSync).toHaveBeenCalledTimes(3);
-      expect(res.sendStatus).toHaveBeenCalledWith(204);
+    
+      expect(pool.query).toHaveBeenCalledTimes(2); // Verifica las consultas
+      expect(fs.unlinkSync).toHaveBeenCalledTimes(3); // Verifica eliminación de tres archivos
+      expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('image1.png'));
+      expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('image2.png'));
+      expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('video.mp4'));
+      expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('podcast.mp3'));
+      expect(res.sendStatus).toHaveBeenCalledWith(204); // Verifica el estado de la respuesta
     });
+    
 
     it('debería devolver un error si el laboratorio no existe', async () => {
       const req = { params: { id: '999' } };
