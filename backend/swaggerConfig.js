@@ -4,9 +4,9 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Attendance Records API',
+      title: 'Labs CMS',
       version: '1.0.0',
-      description: 'API para gestionar registros de asistencia, laboratorios, usuarios y administradores.',
+      description: 'Proyecto sobre desarrollo de sistema de gestión de contenido de laboratorios.',
       contact: {
         name: 'API Support',
         email: 'support@example.com',
