@@ -165,7 +165,7 @@ describe('Labs Controller', () => {
       await deleteLab(req, res, next);
     
       expect(pool.query).toHaveBeenCalledTimes(2); // Verifica las consultas
-      expect(fs.unlinkSync).toHaveBeenCalledTimes(3); // Verifica eliminación de tres archivos
+      expect(fs.unlinkSync).toHaveBeenCalledTimes(4); // Verifica eliminación de tres archivos
       expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('image1.png'));
       expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('image2.png'));
       expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('video.mp4'));
