@@ -15,6 +15,11 @@ const registerUser = async (req, res) => {
     return res.status(400).json({ msg: errors.array()[0].msg, errors: errors.array() });
   }
 
+  if (req.body.user_age && isNaN(req.body.user_age)) {
+    logger.warn('Intento de registro de usuario con un valor no numérico para user_age');
+    return res.status(400).json({ msg: 'Invalid user_age, it must be a number' });
+  }  
+
   const {
     user_name,
     user_surname,
