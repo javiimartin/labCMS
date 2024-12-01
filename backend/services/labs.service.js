@@ -99,7 +99,7 @@ const deleteLabService = async (id) => {
 
   // Eliminar imágenes asociadas
   if (lab_images) {
-    const images = lab_images.split(' - ');
+    const images = [...new Set(lab_images.split(' - '))]; // Elimina duplicados
     images.forEach((image) => {
       const filePath = path.join(__dirname, '..', 'uploads', image);
       if (fs.existsSync(filePath)) {
@@ -127,6 +127,7 @@ const deleteLabService = async (id) => {
   // Eliminar laboratorio de la base de datos
   await pool.query('DELETE FROM lab WHERE lab_code = $1', [id]);
 };
+
 
 
 const deleteLabImageService = async (id, image) => {

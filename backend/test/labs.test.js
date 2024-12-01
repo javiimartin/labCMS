@@ -150,12 +150,12 @@ describe('Labs Controller', () => {
         .mockResolvedValueOnce({
           rows: [
             {
-              lab_images: 'image1.png - image2.png',
+              lab_images: 'image1.png - image2.png', // Sin duplicados
               lab_video: 'video.mp4',
               lab_podcast: 'podcast.mp3',
             },
           ],
-        }) // Simula obtener el laboratorio
+        })
         .mockResolvedValueOnce({ rowCount: 1 }); // Simula eliminación de la base de datos
     
       // Mock de fs
