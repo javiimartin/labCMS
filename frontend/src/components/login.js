@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Button, Container, TextField, Typography, Snackbar, Alert } from '@mui/material';
-import { useAuth } from '../util/authContext';
+import { useAuth } from '../middleware/authContext';
 
 const Login = () => {
   const navigate = useNavigate();

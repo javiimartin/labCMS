@@ -2,14 +2,14 @@ import React from 'react';
 import { Box, Container, Typography, Grid, Card, CardContent } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../middleware/authContext';
-/*
+
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 import CreateIcon from '@mui/icons-material/Create';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import EditIcon from '@mui/icons-material/Edit';
 import ScienceIcon from '@mui/icons-material/Science';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';*/
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 const Home = () => {
   const { admin } = useAuth();

@@ -39,7 +39,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: docker/Dockerfile.dev
+      dockerfile: docker/dockerfile.dev
     ports:
       - "3000:3000"
     depends_on:
