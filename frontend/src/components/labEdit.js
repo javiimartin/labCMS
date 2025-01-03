@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, TextField, Button, Card, Box, Typography, Snackbar, Alert, CircularProgress } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
-import { validateMultimedia } from '../middleware/labs.middle';
+import validateMultimedia from '../middleware/labs.middle';
 
 const UploadField = ({ label, onChange, accept, error, file, onDelete, disabled = false }) => (
   <Box sx={{ marginTop: 2, display: 'flex', flexDirection: 'column' }}>
