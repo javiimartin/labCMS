@@ -1,0 +1,15 @@
+# Dockerfile.frontend (modo desarrollo)
+FROM node:18
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+# Copiamos todo el código del frontend
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

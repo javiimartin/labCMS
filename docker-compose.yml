@@ -35,6 +35,17 @@ services:
       - labsCMS-network
     ports:
       - "5000:5000"
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/Dockerfile.dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - labsCMS-network
 
 
 volumes:

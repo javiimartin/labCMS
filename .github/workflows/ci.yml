@@ -9,27 +9,44 @@ on:
       - main
 
 jobs:
-  backend-tests:
+  tests:
     runs-on: ubuntu-latest
-
-    services:
-      db:
-        image: postgres:latest
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install docker-compose -y
+
+      - name: Create .env file
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+          echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
+      - name: Build and start services with Docker Compose
+        run: |
+          docker-compose build
+          docker-compose up -d
+
+      - name: Wait for services to be healthy
+        run: |
+          # Aquí puedes usar sleep o escribir un pequeño script
+          # que compruebe el healthcheck de los contenedores
+          sleep 30
+          docker-compose ps
+
+      - name: (Opcional) Test cluster services
+        # Aquí podrías hacer alguna verificación genérica 
+        # o usar un script que lance curl a cada servicio
+        run: |
+          chmod +x ./test_cluster.sh
+          ./test_cluster.sh
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -40,6 +57,10 @@ jobs:
         working-directory: ./backend
         run: npm install
 
+      - name: Run Backend Linter
+        working-directory: ./backend
+        run: npm run lint
+
       - name: Run Backend Tests
         working-directory: ./backend
         env:
@@ -48,5 +69,23 @@ jobs:
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          # En Docker Compose, el servicio "db" está accesible en la red interna como "db"
+          # Si tus tests se conectan en localhost:5432, deberás ajustarlo
           POSTGRES_HOST: localhost
         run: npm run test
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Run Frontend Linter
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Run Frontend Tests
+        working-directory: ./frontend
+        run: npm run test
+
+      - name: Stop and clean up Docker Compose
+        if: always()
+        run: docker-compose down --volumes
