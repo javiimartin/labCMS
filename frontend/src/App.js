@@ -5,6 +5,7 @@ import Home from './components/home';
 import Login from './components/login';
 import Register from './components/register';
 import LabList from './components/labDetail';
+import LabDetail from './components/labDetail';
 import EditLab from './components/labEdit';
 import PrivateRoute from './middleware/PrivateRoute';
 import { AuthProvider } from './middleware/authContext';
