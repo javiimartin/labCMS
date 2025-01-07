@@ -45,3 +45,9 @@ Este proyecto está licenciado bajo la licencia MIT. Para más información, con
 ## Contribuciones
 
 Las contribuciones son bienvenidas. Si deseas contribuir, por favor abre un  [issue](https://github.com/javiimartin/labCMS/issues/new) en el repositorio.
+
+
+## Documentación de los hitos
+- [Documentación del Hito 2](./hito2.md)
+- [Documentación del Hito 3](./hito3.md)
+- [Documentación del Hito 4](./hito4.md)
