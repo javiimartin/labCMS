@@ -8,7 +8,8 @@
     "test": "jest --coverage",
     "db:start": "docker-compose up -d",
     "db:stop": "docker-compose down",
-    "ci:test": "npm run lint && npm run test"
+    "ci:test": "npm run lint && npm run test",
+    "lint": "eslint ."
   },
   "author": "",
   "license": "ISC",
