@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-const axios = require('axios');
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Container, TextField, Typography, Snackbar, Alert, CircularProgress } from '@mui/material';
 
