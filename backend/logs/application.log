@@ -1,0 +1,56 @@
+2025-01-28T21:18:18.487Z [INFO]: ::1 - - [28/Jan/2025:21:18:18 +0000] "GET /api-docs/ HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:18:18.595Z [INFO]: ::1 - - [28/Jan/2025:21:18:18 +0000] "GET /api-docs/swagger-ui-init.js HTTP/1.1" 200 30172 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:18:18.601Z [INFO]: ::1 - - [28/Jan/2025:21:18:18 +0000] "GET /api-docs/swagger-ui.css HTTP/1.1" 200 152072 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:18:18.619Z [INFO]: ::1 - - [28/Jan/2025:21:18:18 +0000] "GET /api-docs/swagger-ui-standalone-preset.js HTTP/1.1" 200 230007 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:18:18.648Z [INFO]: ::1 - - [28/Jan/2025:21:18:18 +0000] "GET /api-docs/swagger-ui-bundle.js HTTP/1.1" 200 1426050 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:18:19.107Z [INFO]: ::1 - - [28/Jan/2025:21:18:19 +0000] "GET /api-docs/favicon-32x32.png HTTP/1.1" 200 628 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:18:21.209Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T21:18:40.248Z [ERROR]: Error: 
+2025-01-28T21:18:40.252Z [INFO]: ::1 - - [28/Jan/2025:21:18:40 +0000] "GET /api/labs HTTP/1.1" 500 14 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:18:42.966Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T21:19:04.352Z [INFO]: ::1 - - [28/Jan/2025:21:19:04 +0000] "POST /api/labs HTTP/1.1" 400 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:19:07.051Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T21:20:53.658Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/ HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:53.678Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/swagger-ui.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:53.681Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/swagger-ui-bundle.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:53.685Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/swagger-ui-standalone-preset.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:53.691Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/ HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:53.763Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/swagger-ui.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:53.767Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/swagger-ui-bundle.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:53.770Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/swagger-ui-standalone-preset.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:53.787Z [INFO]: ::1 - - [28/Jan/2025:21:20:53 +0000] "GET /api-docs/swagger-ui-init.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:20:56.377Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T21:21:01.130Z [INFO]: ::1 - - [28/Jan/2025:21:21:01 +0000] "POST /api/labs HTTP/1.1" 400 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:21:03.842Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T21:21:47.545Z [INFO]: ::1 - - [28/Jan/2025:21:21:47 +0000] "GET /api-docs/ HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:21:47.606Z [INFO]: ::1 - - [28/Jan/2025:21:21:47 +0000] "GET /api-docs/swagger-ui.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:21:47.615Z [INFO]: ::1 - - [28/Jan/2025:21:21:47 +0000] "GET /api-docs/swagger-ui-init.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:21:47.618Z [INFO]: ::1 - - [28/Jan/2025:21:21:47 +0000] "GET /api-docs/swagger-ui-bundle.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:21:47.620Z [INFO]: ::1 - - [28/Jan/2025:21:21:47 +0000] "GET /api-docs/swagger-ui-standalone-preset.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:21:47.866Z [INFO]: ::1 - - [28/Jan/2025:21:21:47 +0000] "GET /api-docs/favicon-32x32.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:21:50.266Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T21:22:15.498Z [INFO]: ::1 - - [28/Jan/2025:21:22:15 +0000] "POST /api/labs HTTP/1.1" 400 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:22:18.207Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T21:24:18.688Z [INFO]: ::1 - - [28/Jan/2025:21:24:18 +0000] "GET /api-docs/ HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:24:18.708Z [INFO]: ::1 - - [28/Jan/2025:21:24:18 +0000] "GET /api-docs/swagger-ui.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:24:18.714Z [INFO]: ::1 - - [28/Jan/2025:21:24:18 +0000] "GET /api-docs/swagger-ui-bundle.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:24:18.717Z [INFO]: ::1 - - [28/Jan/2025:21:24:18 +0000] "GET /api-docs/swagger-ui-standalone-preset.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:24:18.733Z [INFO]: ::1 - - [28/Jan/2025:21:24:18 +0000] "GET /api-docs/swagger-ui-init.js HTTP/1.1" 200 29384 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:24:21.421Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T21:24:26.290Z [ERROR]: Error: 
+2025-01-28T21:24:26.293Z [INFO]: ::1 - - [28/Jan/2025:21:24:26 +0000] "POST /api/labs HTTP/1.1" 500 14 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T21:24:28.996Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T22:53:36.021Z [INFO]: ::1 - - [28/Jan/2025:22:53:36 +0000] "GET /api-docs/ HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T22:53:36.146Z [INFO]: ::1 - - [28/Jan/2025:22:53:36 +0000] "GET /api-docs/swagger-ui-init.js HTTP/1.1" 200 23509 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T22:53:36.161Z [INFO]: ::1 - - [28/Jan/2025:22:53:36 +0000] "GET /api-docs/swagger-ui.css HTTP/1.1" 200 152072 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T22:53:36.179Z [INFO]: ::1 - - [28/Jan/2025:22:53:36 +0000] "GET /api-docs/swagger-ui-standalone-preset.js HTTP/1.1" 200 230007 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T22:53:36.212Z [INFO]: ::1 - - [28/Jan/2025:22:53:36 +0000] "GET /api-docs/swagger-ui-bundle.js HTTP/1.1" 200 1426050 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T22:53:36.707Z [INFO]: ::1 - - [28/Jan/2025:22:53:36 +0000] "GET /api-docs/favicon-32x32.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+2025-01-28T22:53:38.763Z [ERROR] Fluentd connection failed: getaddrinfo ENOTFOUND logs
+2025-01-28T22:54:26.874Z [INFO]: Usuario registrado con éxito: testuser@example.com
+2025-01-28T22:54:26.908Z [ERROR]: Error al registrar usuario: El usuario ya existe
+2025-01-28T22:54:26.924Z [WARN]: Intento de registro de usuario con un valor no numérico para user_age
+2025-01-28T22:54:26.933Z [ERROR]: Error al registrar usuario: Database error
+2025-01-28T22:54:26.944Z [INFO]: Usuario inició sesión: testuser@example.com
+2025-01-28T22:54:26.955Z [WARN]: Intento fallido de login para usuario: testuser@example.com
+2025-01-28T22:54:26.965Z [WARN]: Intento fallido de login para usuario: testuser@example.com

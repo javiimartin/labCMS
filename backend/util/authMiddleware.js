@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-const authMiddleware = (role) => (req, res, next) => {
+const authMiddleware = (req, res, next) => {
+  if (!req || !req.headers) {
+    return res.status(500).json({ message: 'Request object is missing or malformed' });
+  }
+
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ message: 'No token provided' });
@@ -12,15 +16,9 @@ const authMiddleware = (role) => (req, res, next) => {
       console.error("Token error:", err);
       return res.status(403).json({ message: 'Invalid token' });
     }
-    console.log("User role:", user.role); // Añade esta línea para ver el rol
-    req.user = user;
 
-    if (role === 'student' && user.role !== 'student') {
-      return res.status(403).json({ message: 'Access denied. Requires student privileges' });
-    }
-    if (role === 'admin' && user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied. Requires admin privileges' });
-    }
+    console.log("Authenticated user:", user);
+    req.user = user; 
 
     next();
   });

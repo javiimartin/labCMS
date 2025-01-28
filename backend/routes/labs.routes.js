@@ -111,6 +111,11 @@ router.get('/labs/:id', getLabById);
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - lab_name
+ *               - lab_description
+ *               - lab_objectives
+ *               - lab_proyects
  *             properties:
  *               lab_name:
  *                 type: string
@@ -118,6 +123,12 @@ router.get('/labs/:id', getLabById);
  *               lab_description:
  *                 type: string
  *                 description: Descripción del laboratorio.
+ *               lab_objectives:
+ *                 type: string
+ *                 description: Objetivos del laboratorio. (Obligatorio)
+ *               lab_proyects:
+ *                 type: string
+ *                 description: Proyectos del laboratorio. (Obligatorio)
  *               lab_images:
  *                 type: array
  *                 items:
@@ -142,14 +153,23 @@ router.get('/labs/:id', getLabById);
  */
 router.post(
   '/labs',
-  upload.fields([
-    { name: 'lab_images', maxCount: 10 },
-    { name: 'lab_video', maxCount: 1 },
-    { name: 'lab_podcast', maxCount: 1 },
-  ]),
-  multerErrorHandling,
+  (req, res, next) => {
+    upload.fields([
+      { name: 'lab_images', maxCount: 10 },
+      { name: 'lab_video', maxCount: 1 },
+      { name: 'lab_podcast', maxCount: 1 },
+    ])(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: err.message });
+      } else if (err) {
+        return res.status(500).json({ error: 'Error al procesar archivos.' });
+      }
+      next();
+    });
+  },
   createLab
 );
+
 
 /**
  * @swagger
@@ -170,6 +190,11 @@ router.post(
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - lab_name
+ *               - lab_description
+ *               - lab_objectives
+ *               - lab_proyects
  *             properties:
  *               lab_name:
  *                 type: string
@@ -177,6 +202,12 @@ router.post(
  *               lab_description:
  *                 type: string
  *                 description: Descripción actualizada del laboratorio.
+ *               lab_objectives:
+ *                 type: string
+ *                 description: Objetivos actualizados del laboratorio. (Obligatorio)
+ *               lab_proyects:
+ *                 type: string
+ *                 description: Proyectos actualizados del laboratorio. (Obligatorio)
  *               lab_images:
  *                 type: array
  *                 items:
@@ -194,21 +225,33 @@ router.post(
  *     responses:
  *       200:
  *         description: Laboratorio actualizado exitosamente.
+ *       400:
+ *         description: Error en los datos de entrada.
  *       404:
  *         description: Laboratorio no encontrado.
  *       500:
  *         description: Error en el servidor.
  */
+
 router.put(
   '/labs/:id',
-  upload.fields([
-    { name: 'lab_images', maxCount: 10 },
-    { name: 'lab_video', maxCount: 1 },
-    { name: 'lab_podcast', maxCount: 1 },
-  ]),
-  multerErrorHandling,
+  (req, res, next) => {
+    upload.fields([
+      { name: 'lab_images', maxCount: 10 },
+      { name: 'lab_video', maxCount: 1 },
+      { name: 'lab_podcast', maxCount: 1 },
+    ])(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: err.message });
+      } else if (err) {
+        return res.status(500).json({ error: 'Error al procesar archivos.' });
+      }
+      next();
+    });
+  },
   updateLab
 );
+
 
 /**
  * @swagger
@@ -233,35 +276,5 @@ router.put(
  */
 router.delete('/labs/:id', deleteLab);
 
-/**
- * @swagger
- * /labs/{id}/followers/count:
- *   get:
- *     summary: Obtener la cantidad de seguidores de un laboratorio
- *     tags: [Labs]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID del laboratorio.
- *     responses:
- *       200:
- *         description: Cantidad de seguidores obtenida exitosamente.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 followers:
- *                   type: integer
- *                   description: Número de seguidores.
- *       404:
- *         description: Laboratorio no encontrado.
- *       500:
- *         description: Error en el servidor.
- */
-router.get('/labs/:id/followers/count', getLabFollowersCount);
 
 module.exports = router;

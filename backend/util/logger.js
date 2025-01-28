@@ -1,33 +1,46 @@
-const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, printf, colorize } = format;
-require('winston-daily-rotate-file');
+const fs = require('fs');
+const path = require('path');
+const fluent = require('fluent-logger');
 
-// Formato de los logs
-const logFormat = printf(({ level, message, timestamp }) => {
-  return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+// Configuración de Fluentd
+const fluentSender = fluent.createFluentSender('backend.logs', {
+  host: process.env.FLUENTD_HOST || 'logs',
+  port: process.env.FLUENTD_PORT || 24224,
+  timeout: 3.0,
 });
 
-// Configurar transporte de archivos diarios
-const dailyRotateFileTransport = new transports.DailyRotateFile({
-  filename: 'logs/%DATE%-application.log',
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '14d', // Retener logs de los últimos 14 días
+// Función para escribir logs en un archivo local
+const logFilePath = path.join(__dirname, '..', 'logs', 'application.log');
+const writeToFile = (message) => {
+  const logMessage = `${new Date().toISOString()} ${message}\n`;
+  fs.appendFileSync(logFilePath, logMessage, 'utf8');
+};
+
+// Función para registrar logs
+const logger = {
+  log: (level, message) => {
+    const logMessage = `[${level.toUpperCase()}]: ${message}`;
+    
+    // Mostrar en consola
+    console.log(logMessage);
+
+    // Guardar en archivo
+    writeToFile(logMessage);
+
+    // Enviar a Fluentd si está habilitado
+    if (process.env.NODE_ENV !== 'production') {
+      fluentSender.emit('log', { level, message });
+    }
+  },
+  info: (message) => logger.log('info', message),
+  warn: (message) => logger.log('warn', message),
+  error: (message) => logger.log('error', message),
+};
+
+// Manejo de errores de Fluentd
+fluentSender.on('error', (err) => {
+  console.error('Error al conectar con Fluentd:', err);
+  writeToFile(`[ERROR] Fluentd connection failed: ${err.message}`);
 });
 
-// Crear el logger
-const logger = createLogger({
-  level: 'info', // Nivel mínimo de logs (info, warn, error)
-  format: combine(
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    logFormat
-  ),
-  transports: [
-    new transports.Console({ format: combine(colorize(), logFormat) }), // Logs en consola
-    dailyRotateFileTransport, // Logs en archivo
-  ],
-});
-
-// Exportar el logger
 module.exports = logger;

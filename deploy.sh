@@ -20,19 +20,19 @@ log() {
 
 log "Iniciando despliegue automatizado en Google Cloud."
 
-# 1. Autenticación en Google Cloud
+# Autenticación en Google Cloud
 log "Autenticando con la clave de servicio..."
 gcloud auth activate-service-account --key-file=$KEY_FILE || { log "Error en la autenticación"; exit 1; }
 
-# 3. Configuración del proyecto (sin interactividad)
+# Configuración del proyecto (sin interactividad)
 log "Configurando proyecto $PROJECT_ID..."
 gcloud config set project $PROJECT_ID --quiet || { log "Error al configurar el proyecto"; exit 1; }
 
-# 4. Habilitar servicios necesarios
+# Habilitar servicios necesarios
 log "Habilitando servicios en Google Cloud..."
 gcloud services enable artifactregistry.googleapis.com run.googleapis.com cloudbuild.googleapis.com || { log "Error al habilitar servicios"; exit 1; }
 
-# 5. Crear repositorio en Artifact Registry (si no existe)
+# Crear repositorio en Artifact Registry (si no existe)
 log "Verificando existencia del repositorio en Artifact Registry..."
 if ! gcloud artifacts repositories describe $REPO_NAME --location=$REGION >/dev/null 2>&1; then
     log "Repositorio no encontrado. Creando repositorio $REPO_NAME..."
@@ -41,20 +41,20 @@ else
     log "Repositorio encontrado. Continuando..."
 fi
 
-# 6. Autenticación en Artifact Registry
+# Autenticación en Artifact Registry
 log "Autenticando Docker con Artifact Registry..."
 echo "ARTIFACT_REGISTRY_HOST = $ARTIFACT_REGISTRY_HOST"
 gcloud auth configure-docker $ARTIFACT_REGISTRY_HOST --quiet || { log "Error en autenticación de Docker"; exit 1; }
 
-# 7. Construcción de la imagen Docker
+# Construcción de la imagen Docker
 log "Construyendo imagen Docker para el backend..."
 docker build -t $FULL_IMAGE_NAME -f $DOCKERFILE_PATH $CONTEXT_PATH || { log "Error en la construcción de la imagen"; exit 1; }
 
-# 8. Subida de la imagen a Artifact Registry
+# Subida de la imagen a Artifact Registry
 log "Subiendo imagen a Artifact Registry..."
 docker push $FULL_IMAGE_NAME || { log "Error al subir la imagen"; exit 1; }
 
-# 9. Despliegue en Cloud Run
+# Despliegue en Cloud Run
 log "Desplegando en Google Cloud Run..."
 gcloud run deploy $SERVICE_NAME \
     --image $FULL_IMAGE_NAME \
@@ -62,6 +62,12 @@ gcloud run deploy $SERVICE_NAME \
     --region $REGION \
     --allow-unauthenticated \
     --port 5000 \
+    --add-cloudsql-instances attendancerecords:europe-southwest1:attendance-reccords-sql \
+    --set-env-vars INSTANCE_CONNECTION_NAME=attendancerecords:europe-southwest1:attendance-reccords-sql \
+    --set-env-vars DB_HOST="/cloudsql/attendancerecords:europe-southwest1:attendance-reccords-sql" \
+    --set-env-vars DB_USER="postgres" \
+    --set-env-vars DB_PASS="password" \
+    --set-env-vars DB_NAME="labs-cms_db" \
     --quiet || { log "Error en el despliegue"; exit 1; }
 
 # 10. Obtener la URL del servicio

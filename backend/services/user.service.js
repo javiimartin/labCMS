@@ -20,8 +20,8 @@ const registerUserService = async ({
 
   const hashedPassword = await bcrypt.hash(user_password, 10);
   const { rows: newUser } = await pool.query(
-    'INSERT INTO dep_user (user_name, user_surname, user_email, user_password, user_gender, user_age, user_degree, user_zipcode, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-    [user_name, user_surname, user_email, hashedPassword, user_gender, user_age, user_degree, user_zipcode, 'student']
+    'INSERT INTO dep_user (user_name, user_surname, user_email, user_password, user_gender, user_age, user_degree, user_zipcode) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+    [user_name, user_surname, user_email, hashedPassword, user_gender, user_age, user_degree, user_zipcode]
   );
 
   return generateToken(newUser[0]);

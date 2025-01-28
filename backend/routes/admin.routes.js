@@ -4,6 +4,8 @@ const { authMiddleware } = require('../util/authMiddleware'); // Middleware de a
 
 const router = express.Router();
 
+console.log("🚀 Admin router cargado correctamente");
+
 /**
  * @swagger
  * tags:
@@ -24,10 +26,10 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               admin_email:
+ *               user_email:
  *                 type: string
  *                 description: Correo electrónico del administrador.
- *               admin_password:
+ *               user_password:
  *                 type: string
  *                 description: Contraseña del administrador.
  *     responses:
@@ -63,16 +65,16 @@ router.post('/login', loginAdmin);
  *           schema:
  *             type: object
  *             properties:
- *               admin_name:
+ *               user_name:
  *                 type: string
  *                 description: Nombre del administrador.
- *               admin_surname:
+ *               user_surname:
  *                 type: string
  *                 description: Apellido del administrador.
- *               admin_email:
+ *               user_email:
  *                 type: string
  *                 description: Correo electrónico del administrador.
- *               admin_password:
+ *               user_password:
  *                 type: string
  *                 description: Contraseña del administrador.
  *     responses:
@@ -91,7 +93,7 @@ router.post('/login', loginAdmin);
  *       500:
  *         description: Error en el servidor.
  */
-router.post('/register', authMiddleware('admin'), registerAdmin);
+router.post('/register', registerAdmin);
 
 /**
  * @swagger
@@ -111,16 +113,16 @@ router.post('/register', authMiddleware('admin'), registerAdmin);
  *               items:
  *                 type: object
  *                 properties:
- *                   admin_id:
+ *                   user_code:
  *                     type: string
  *                     description: ID del administrador.
- *                   admin_name:
+ *                   user_name:
  *                     type: string
  *                     description: Nombre del administrador.
- *                   admin_surname:
+ *                   user_surname:
  *                     type: string
  *                     description: Apellido del administrador.
- *                   admin_email:
+ *                   user_email:
  *                     type: string
  *                     description: Correo electrónico del administrador.
  *       401:
@@ -128,7 +130,7 @@ router.post('/register', authMiddleware('admin'), registerAdmin);
  *       500:
  *         description: Error en el servidor.
  */
-router.get('/admins', authMiddleware('admin'), getAllAdmins);
+router.get('/admins', authMiddleware, getAllAdmins);
 
 /**
  * @swagger
@@ -152,16 +154,16 @@ router.get('/admins', authMiddleware('admin'), getAllAdmins);
  *           schema:
  *             type: object
  *             properties:
- *               admin_name:
+ *               user_name:
  *                 type: string
  *                 description: Nombre actualizado del administrador.
- *               admin_surname:
+ *               user_surname:
  *                 type: string
  *                 description: Apellido actualizado del administrador.
- *               admin_email:
+ *               user_email:
  *                 type: string
  *                 description: Correo electrónico actualizado del administrador.
- *               admin_password:
+ *               user_password:
  *                 type: string
  *                 description: Contraseña actualizada del administrador.
  *     responses:
@@ -172,16 +174,16 @@ router.get('/admins', authMiddleware('admin'), getAllAdmins);
  *             schema:
  *               type: object
  *               properties:
- *                 admin_id:
+ *                 user_code:
  *                   type: string
  *                   description: ID del administrador.
- *                 admin_name:
+ *                 user_name:
  *                   type: string
  *                   description: Nombre del administrador.
- *                 admin_surname:
+ *                 user_surname:
  *                   type: string
  *                   description: Apellido del administrador.
- *                 admin_email:
+ *                 user_email:
  *                   type: string
  *                   description: Correo electrónico del administrador.
  *       400:
@@ -191,6 +193,6 @@ router.get('/admins', authMiddleware('admin'), getAllAdmins);
  *       500:
  *         description: Error en el servidor.
  */
-router.put('/admins/:id', authMiddleware('admin'), updateAdmin);
+router.put('/admins/:id', authMiddleware, updateAdmin);
 
 module.exports = router;

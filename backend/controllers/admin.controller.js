@@ -21,11 +21,7 @@ const registerAdmin = async (req, res) => {
     return res.status(201).json({ token });
   } catch (error) {
     logger.error(`Error al registrar administrador: ${error.message}`);
-    if (error.message === 'El administrador ya existe') {
-      return res.status(400).json({ msg: error.message });
-    } else {
-      return res.status(500).json({ msg: 'Error en el servidor' });
-    }
+    return res.status(400).json({ msg: error.message });
   }
 };
 
@@ -37,16 +33,9 @@ const loginAdmin = async (req, res) => {
     return res.status(200).json({ token });
   } catch (error) {
     logger.warn(`Intento fallido de login para administrador: ${req.body.admin_email}`);
-    // Log del error específico esperado en el test
-    logger.error(`Error en loginAdmin: ${error.message}`);
-    if (error.message === 'Credenciales inválidas') {
-      return res.status(400).json({ msg: error.message });
-    } else {
-      return res.status(500).json({ msg: 'Error en el servidor' });
-    }
+    return res.status(400).json({ msg: error.message });
   }
 };
-
 
 // Obtener todos los administradores
 const getAllAdmins = async (req, res) => {
@@ -74,11 +63,7 @@ const updateAdmin = async (req, res) => {
     return res.status(200).json(updatedAdmin);
   } catch (error) {
     logger.error(`Error al actualizar el administrador con ID ${req.params.id}: ${error.message}`);
-    if (error.message === 'Administrador no encontrado') {
-      return res.status(404).json({ msg: error.message });
-    } else {
-      return res.status(500).json({ msg: 'Error en el servidor' });
-    }
+    return res.status(400).json({ msg: error.message });
   }
 };
 
