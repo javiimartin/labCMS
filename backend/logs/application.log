@@ -54,3 +54,17 @@
 2025-01-28T22:54:26.944Z [INFO]: Usuario inició sesión: testuser@example.com
 2025-01-28T22:54:26.955Z [WARN]: Intento fallido de login para usuario: testuser@example.com
 2025-01-28T22:54:26.965Z [WARN]: Intento fallido de login para usuario: testuser@example.com
+2025-01-28T23:19:22.759Z [INFO]: Usuario registrado con éxito: testuser@example.com
+2025-01-28T23:19:22.782Z [ERROR]: Error al registrar usuario: El usuario ya existe
+2025-01-28T23:19:22.791Z [WARN]: Intento de registro de usuario con un valor no numérico para user_age
+2025-01-28T23:19:22.798Z [ERROR]: Error al registrar usuario: Database error
+2025-01-28T23:19:22.806Z [INFO]: Usuario inició sesión: testuser@example.com
+2025-01-28T23:19:22.812Z [WARN]: Intento fallido de login para usuario: testuser@example.com
+2025-01-28T23:19:22.817Z [WARN]: Intento fallido de login para usuario: testuser@example.com
+2025-01-28T23:23:41.188Z [INFO]: Usuario registrado con éxito: testuser@example.com
+2025-01-28T23:23:41.208Z [ERROR]: Error al registrar usuario: El usuario ya existe
+2025-01-28T23:23:41.216Z [WARN]: Intento de registro de usuario con un valor no numérico para user_age
+2025-01-28T23:23:41.222Z [ERROR]: Error al registrar usuario: Database error
+2025-01-28T23:23:41.228Z [INFO]: Usuario inició sesión: testuser@example.com
+2025-01-28T23:23:41.234Z [WARN]: Intento fallido de login para usuario: testuser@example.com
+2025-01-28T23:23:41.239Z [WARN]: Intento fallido de login para usuario: testuser@example.com
