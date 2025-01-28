@@ -36,16 +36,16 @@ services:
     ports:
       - "5000:5000"
   
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: docker/dockerfile.dev
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - labsCMS-network
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/dockerfile.dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - labsCMS-network
 
 
 volumes:
